@@ -513,7 +513,7 @@ TEST(vect_complex_mul, vect_complex_s16_mul_basic_quake)
 #  define REPS       (100)
 #  define MAX_LEN    (64)
 #else
-#  define REPS       (1000)
+#  define REPS       (100000)
 #  define MAX_LEN    (256)
 #endif
 
@@ -552,8 +552,8 @@ TEST(vect_complex_mul, vect_complex_s16_mul_random_quake)
 
         for(int i = 0; i < len; i++){
             complex_s16_t expected = mul_complex_s16_quake(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s16_headroom((int16_t*) A, 2*len), hr, v);
         
@@ -562,8 +562,8 @@ TEST(vect_complex_mul, vect_complex_s16_mul_random_quake)
 
         for(int i = 0; i < len; i++){
             complex_s16_t expected = mul_complex_s16_quake(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s16_headroom((int16_t*) A, 2*len), hr, v);
         
@@ -572,8 +572,8 @@ TEST(vect_complex_mul, vect_complex_s16_mul_random_quake)
 
         for(int i = 0; i < len; i++){
             complex_s16_t expected = mul_complex_s16_quake(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT16_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s16_headroom((int16_t*) A, 2*len), hr, v);
 

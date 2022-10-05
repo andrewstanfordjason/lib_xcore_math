@@ -151,7 +151,7 @@ headroom_t vect_complex_s16_scale(
 
 // complex vector multiplied by complex vector
 
-headroom_t vect_complex_s16_mul_quake(
+headroom_t vect_complex_s16_mul_quake_original(
     complex_s16_t a[],
     const complex_s16_t b[],
     const complex_s16_t c[],
@@ -182,10 +182,65 @@ headroom_t vect_complex_s16_mul_quake(
     return vect_complex_s16_headroom_quake(a, length);
 }
 
+headroom_t vect_complex_s16_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+
+        complex_s16_t B = {
+            ASHR(16)(b[k].re, b_shr), 
+            ASHR(16)(b[k].im, b_shr),
+        };
+        complex_s16_t C = {
+            ASHR(16)(c[k].re, c_shr), 
+            ASHR(16)(c[k].im, c_shr),
+        };
+        
+        uint8_t b_re_l = (uint8_t)B.re;
+        uint8_t b_im_l = (uint8_t)B.im;
+
+        int32_t q1_0 = (int32_t)b_re_l * C.re;
+        int32_t q2_0 = (int32_t)b_im_l * C.im;
+
+        int32_t q3_0 = (int32_t)b_re_l * C.im;
+        int32_t q4_0 = (int32_t)b_im_l * C.re;
+
+        int32_t t_re = q1_0 - q2_0;
+        int32_t t_im = q3_0 + q4_0;
+
+        int16_t inter_re = ROUND_SHR(t_re, 9);
+        int16_t inter_im = ROUND_SHR(t_im, 9);
+        
+        //now the second half
+
+        int8_t b_re_h = (int8_t)(B.re>>8);
+        int8_t b_im_h = (int8_t)(B.im>>8);
+
+        int32_t q1_1 = (int32_t)b_re_h * C.re;
+        int32_t q2_1 = (int32_t)b_im_h * C.im;
+
+        int32_t q3_1 = (int32_t)b_re_h * C.im;
+        int32_t q4_1 = (int32_t)b_im_h * C.re;
+
+        int32_t a_re = ROUND_SHR(q1_1 - q2_1 + ((int32_t)inter_re << 1), 6);
+        int32_t a_im = ROUND_SHR(q3_1 + q4_1 + ((int32_t)inter_im << 1), 6);
+
+        a[k].re = SAT(16)(a_re);
+        a[k].im = SAT(16)(a_im);
+    }
+
+    return vect_complex_s16_headroom_quake(a, length);
+}
+
 
 // complex vector (conjugate) multiplied by complex vector
 
-headroom_t vect_complex_s16_conj_mul_quake(
+headroom_t vect_complex_s16_conj_mul_quake_original(
     complex_s16_t a[],
     const complex_s16_t b[],
     const complex_s16_t c[],
@@ -212,6 +267,61 @@ headroom_t vect_complex_s16_conj_mul_quake(
 
         a[k].re = SAT(16)(q1 + q2);
         a[k].im = SAT(16)(q4 - q3);
+    }
+
+    return vect_complex_s16_headroom_quake(a, length);
+}
+
+headroom_t vect_complex_s16_conj_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+        
+        complex_s16_t B = {
+            ASHR(16)(b[k].re, b_shr), 
+            ASHR(16)(b[k].im, b_shr),
+        };
+
+        complex_s16_t C = {
+            ASHR(16)(c[k].re, c_shr), 
+            ASHR(16)(c[k].im, c_shr),
+        };
+        uint8_t b_re_l = (uint8_t)B.re;
+        uint8_t b_im_l = (uint8_t)B.im;
+
+        int32_t q1_0 = (int32_t)b_re_l * C.re;
+        int32_t q2_0 = (int32_t)b_im_l * C.im;
+
+        int32_t q3_0 = (int32_t)b_re_l * C.im;
+        int32_t q4_0 = (int32_t)b_im_l * C.re;
+
+        int32_t t_re = q1_0 + q2_0;
+        int32_t t_im = q4_0 - q3_0;
+
+        int16_t inter_re = ROUND_SHR(t_re, 9);
+        int16_t inter_im = ROUND_SHR(t_im, 9);
+        
+        //now the second half
+
+        int8_t b_re_h = (int8_t)(B.re>>8);
+        int8_t b_im_h = (int8_t)(B.im>>8);
+
+        int32_t q1_1 = (int32_t)b_re_h * C.re;
+        int32_t q2_1 = (int32_t)b_im_h * C.im;
+
+        int32_t q3_1 = (int32_t)b_re_h * C.im;
+        int32_t q4_1 = (int32_t)b_im_h * C.re;
+
+        int32_t a_re = ROUND_SHR(q1_1 + q2_1 + ((int32_t)inter_re << 1), 6);
+        int32_t a_im = ROUND_SHR(q4_1 - q3_1 + ((int32_t)inter_im << 1), 6);
+
+        a[k].re = SAT(16)(a_re);
+        a[k].im = SAT(16)(a_im);
     }
 
     return vect_complex_s16_headroom_quake(a, length);
