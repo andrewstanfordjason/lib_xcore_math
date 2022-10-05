@@ -17,7 +17,6 @@ static void load_vec(
     for(int i = 0; i < 4; i++){
         dst[i] = src[i];
     }
-
 }
 
 #include<string.h>
@@ -26,17 +25,12 @@ static void load_vec_16(
     const complex_s16_t src[])
 {
     memcpy(dst, src, sizeof(complex_s16_t) * 8);
-    // for(int i = 0; i < 8; i++){
-    //     dst[i] = src[i];
-    // }
 }
 
-void print_vector_16(const char * name, const complex_s16_t x[]){
+static void print_vector_16(const char * name, const complex_s16_t x[]){
     printf("%s ", name);
     for (int i=0;i<8;i++){
-        // printf("(%d+%dj) ", x[i].re , x[i].im);
         printf("(%.2f+%.2fj) ", (float)x[i].re/(1<<14) ,  (float)x[i].im/(1<<14));
-
     }
     printf("\n");
 }
@@ -146,7 +140,9 @@ static void vftfb_quake_s16(
         s[2+i].im = vR[0+i].im - vR[2+i].im;
         s[3+i].re = vR[3+i].im - vR[1+i].im;
         s[3+i].im = vR[1+i].re - vR[3+i].re;
+    }
 
+    for (int i=0; i<8; i+=4){
         vR[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[1+i].re, shift_mode);
         vR[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[1+i].im, shift_mode);
         vR[1+i].re = (int16_t) ASHR(16)(s[0+i].re - s[1+i].re, shift_mode);
@@ -257,7 +253,6 @@ void fft_dif_forward_quake_s16 (
             for(int k = b-8; k >= 0; k -= 8){
 
                 load_vec_16(vC, W);
-
                 W = &W[8];
 
                 for(int j = 0; j < a/8; j+=1){
@@ -346,19 +341,19 @@ void fft_dif_inverse_quake_s16 (
     shift_mode = (*hr == 3)? 0 : (*hr < 3)? 1 : -1;
     exp_modifier += shift_mode;
 
-    if(N != 4){
+    if(N > 8){
 
-        for(int n = 0; n < FFT_N_LOG2-2; n++){
+        for(int n = 0; n < FFT_N_LOG2-3; n++){
             
             const int b = 1<<(FFT_N_LOG2-1-n);
-            const int a = 1<<(2+n);
+            const int a = 1<<(3+n);
 
-            for(int k = b-4; k >= 0; k -= 4){
+            for(int k = b-8; k >= 0; k -= 8){
                 
                 load_vec_16(vC, W);
                 W = &W[8];
 
-                for(int j = 0; j < a/4; j+=1){
+                for(int j = 0; j < a/8; j+=1){
 
                     const int s = 2*j*b+k;
 
@@ -388,12 +383,42 @@ void fft_dif_inverse_quake_s16 (
         }
     }
     
+    // this always happens
+    if (N >= 8){
+        //do the special vadsb
 
-    for(int j = 0; j < (N>>2); j++){
+        load_vec_16(vC, W);
+
+        for(int k = 0; k<N; k+=8){
+
+            load_vec_16(vD, &x[k]);
+
+            for(int i = 0; i < 4; i++){
+                int16_t t_re = ASHR(16)(((int32_t)vD[i+4].re) + vD[i].re, shift_mode);
+                int16_t t_im = ASHR(16)(((int32_t)vD[i+4].im) + vD[i].im, shift_mode);
+                vD[i+4].re   = ASHR(16)(((int32_t)vD[i+4].re) - vD[i].re, shift_mode);
+                vD[i+4].im   = ASHR(16)(((int32_t)vD[i+4].im) - vD[i].im, shift_mode);
+                vD[i].re = t_re;
+                vD[i].im = t_im;
+            }
+
+            vect_complex_s16_conj_mul_quake(vR, vD, vC, 8, 0, 0);
+            load_vec_16(&x[k], vR);
+
+        }
+        
+        const headroom_t cur_hr = vect_complex_s16_headroom_quake(x, N);
+        
+        shift_mode = (cur_hr == 3)? 0 : (cur_hr < 3)? 1 : -1;
+        exp_modifier += shift_mode;
+    }
+
+    for(int j = 0; j < (N>>3); j++){
         load_vec_16(vR, &x[8*j]);
         vftfb_quake_s16(vR, shift_mode);
         load_vec_16(&x[8*j], vR);
     }
+
 
     *hr = vect_complex_s16_headroom_quake(x, N);
     *exp = *exp + exp_modifier;
