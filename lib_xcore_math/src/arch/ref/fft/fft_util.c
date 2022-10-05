@@ -40,6 +40,23 @@ void fft_index_bit_reversal(
     }
 }
 
+void fft_index_bit_reversal_quake(
+    complex_s16_t* a,
+    const unsigned length)
+{
+    size_t logn = u32_ceil_log2(length);
+    for(int i = 0; i < length; i++){
+        
+        unsigned rev = n_bitrev(i, logn);
+        if(rev < i) continue;
+
+        complex_s16_t tmp = a[i];
+        
+        a[i] = a[rev];
+        a[rev] = tmp;
+    }
+}
+
 
 
 headroom_t fft_spectra_split(
@@ -256,6 +273,19 @@ void vect_complex_s32_tail_reverse(
         int k = N-i;
 
         complex_s32_t tmp = x[i];
+        x[i] = x[k];
+        x[k] = tmp;
+    }
+}
+
+void vect_complex_s16_tail_reverse(
+    complex_s16_t x[],
+    const unsigned N)
+{
+    for(int i = 1; i < N/2; i++){
+        int k = N-i;
+
+        complex_s16_t tmp = x[i];
         x[i] = x[k];
         x[k] = tmp;
     }

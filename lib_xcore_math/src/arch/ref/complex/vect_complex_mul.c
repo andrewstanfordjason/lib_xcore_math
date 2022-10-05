@@ -144,6 +144,78 @@ headroom_t vect_complex_s16_scale(
 }
 
 
+////////////////////////////////////////
+//      16-Bit Multiplication  quake        //
+////////////////////////////////////////
+
+
+// complex vector multiplied by complex vector
+
+headroom_t vect_complex_s16_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+        
+        complex_s16_t B = {
+            ASHR(16)(b[k].re, b_shr), 
+            ASHR(16)(b[k].im, b_shr),
+        };
+        complex_s16_t C = {
+            ASHR(16)(c[k].re, c_shr), 
+            ASHR(16)(c[k].im, c_shr),
+        };
+
+        int32_t q1 = ROUND_SHR( ((int32_t)B.re) * C.re, 14 );
+        int32_t q2 = ROUND_SHR( ((int32_t)B.im) * C.im, 14 );
+        int32_t q3 = ROUND_SHR( ((int32_t)B.re) * C.im, 14 );
+        int32_t q4 = ROUND_SHR( ((int32_t)B.im) * C.re, 14 );
+
+        a[k].re = SAT(16)(q1 - q2);
+        a[k].im = SAT(16)(q3 + q4);
+    }
+
+    return vect_complex_s16_headroom_quake(a, length);
+}
+
+
+// complex vector (conjugate) multiplied by complex vector
+
+headroom_t vect_complex_s16_conj_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+        
+        complex_s16_t B = {
+            ASHR(16)(b[k].re, b_shr), 
+            ASHR(16)(b[k].im, b_shr),
+        };
+
+        complex_s16_t C = {
+            ASHR(16)(c[k].re, c_shr), 
+            ASHR(16)(c[k].im, c_shr),
+        };
+
+        int32_t q1 = ROUND_SHR( ((int32_t)B.re) * C.re, 14 );
+        int32_t q2 = ROUND_SHR( ((int32_t)B.im) * C.im, 14 );
+        int32_t q3 = ROUND_SHR( ((int32_t)B.re) * C.im, 14 );
+        int32_t q4 = ROUND_SHR( ((int32_t)B.im) * C.re, 14 );
+
+        a[k].re = SAT(16)(q1 + q2);
+        a[k].im = SAT(16)(q4 - q3);
+    }
+
+    return vect_complex_s16_headroom_quake(a, length);
+}
 
 
 

@@ -275,6 +275,9 @@ headroom_t vect_complex_s16_headroom(
     const int16_t b_imag[],
     const unsigned length);
 
+headroom_t vect_complex_s16_headroom_quake(
+    const complex_s16_t a[],
+    const unsigned length);
 
 /**
  * @brief Compute the magnitude of each element of a complex 16-bit vector.

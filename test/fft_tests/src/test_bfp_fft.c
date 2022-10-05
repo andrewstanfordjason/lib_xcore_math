@@ -24,7 +24,7 @@ TEST_SETUP(bfp_fft) { fflush(stdout); }
 TEST_TEAR_DOWN(bfp_fft) {}
 
 
-#define MAX_PROC_FRAME_LENGTH_LOG2 10
+#define MAX_PROC_FRAME_LENGTH_LOG2 8
 #define MAX_PROC_FRAME_LENGTH (1<<MAX_PROC_FRAME_LENGTH_LOG2)
 
 #define EXPONENT_SIZE   3

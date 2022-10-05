@@ -155,7 +155,6 @@ TEST(bfp_headroom, bfp_complex_s16_headroom)
     }
 }
 
-
 TEST(bfp_headroom, bfp_complex_s32_headroom)
 {
 

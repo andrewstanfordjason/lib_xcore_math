@@ -330,6 +330,20 @@ void conv_vect_complex_s16_to_complex_double(
     }
 }
 
+void conv_vect_complex_s16_to_complex_double_v2(
+    double out_real[], 
+    double out_imag[], 
+    const complex_s16_t input[], 
+    const unsigned length, 
+    const exponent_t input_exp, 
+    conv_error_e *error)
+{
+    for(int i = 0; i < length; i++){
+        out_real[i] = conv_s16_to_double(input[i].re, input_exp, error);
+        out_imag[i] = conv_s16_to_double(input[i].im, input_exp, error);
+    }
+}
+
 void conv_vect_complex_s32_to_complex_double(
     complex_double_t output[], 
     const complex_s32_t input[], 

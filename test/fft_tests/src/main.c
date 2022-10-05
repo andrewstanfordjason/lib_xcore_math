@@ -32,6 +32,7 @@ int main(int argc, const char* argv[])
   RUN_TEST_GROUP(fft_mono_adjust);
   RUN_TEST_GROUP(fft_dit);
   RUN_TEST_GROUP(fft_dif);
+  RUN_TEST_GROUP(fft_dif_quake);
 
   RUN_TEST_GROUP(bfp_fft);
   RUN_TEST_GROUP(bfp_fft_packing);

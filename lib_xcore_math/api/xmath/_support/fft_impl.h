@@ -37,6 +37,10 @@ void fft_index_bit_reversal(
     const unsigned length);
     
 
+void fft_index_bit_reversal_quake(
+    complex_s16_t* a,
+    const unsigned length);
+    
 /**
  * @brief Splits the merged spectrum that results from DFTing a pair of real signals together.
  * 

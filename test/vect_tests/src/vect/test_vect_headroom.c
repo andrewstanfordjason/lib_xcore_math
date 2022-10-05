@@ -19,6 +19,7 @@ TEST_GROUP_RUNNER(vect_headroom) {
   RUN_TEST_CASE(vect_headroom, vect_s16_headroom);
   RUN_TEST_CASE(vect_headroom, vect_s32_headroom);
   RUN_TEST_CASE(vect_headroom, vect_complex_s16_headroom);
+  RUN_TEST_CASE(vect_headroom, vect_complex_s16_headroom_quake);
   RUN_TEST_CASE(vect_headroom, vect_complex_s32_headroom);
 }
 
@@ -131,6 +132,38 @@ TEST(vect_headroom, vect_complex_s16_headroom)
     }
 }
 
+
+TEST(vect_headroom, vect_complex_s16_headroom_quake)
+{
+    unsigned seed = SEED_FROM_FUNC_NAME();
+
+
+    complex_s16_t A[MAX_LEN];
+
+    for(int v = 0; v < REPS; v++){
+        setExtraInfo_RS(v, seed);
+
+        const unsigned length = pseudo_rand_uint(&seed, 100, MAX_LEN+1);
+
+        const headroom_t shr = pseudo_rand_uint(&seed, 0, 31);
+        
+        for(int i = 0; i < length; i++){
+            A[i].re = pseudo_rand_int16(&seed) >> shr;
+            A[i].im = pseudo_rand_int16(&seed) >> shr;
+        }
+
+        headroom_t hr = vect_complex_s16_headroom_quake(A, length);
+
+        headroom_t min_hr = INT32_MAX;
+        
+        for(int i = 0; i < length; i++){
+            min_hr = MIN( min_hr, HR_S16(A[i].re) );
+            min_hr = MIN( min_hr, HR_S16(A[i].im) );
+        }
+
+        TEST_ASSERT_EQUAL( min_hr, hr );
+    }
+}
 
 TEST(vect_headroom, vect_complex_s32_headroom)
 {

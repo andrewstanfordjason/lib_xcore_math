@@ -18,6 +18,22 @@ extern "C" {
 #endif
 
 
+headroom_t vect_complex_s16_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr);
+
+headroom_t vect_complex_s16_conj_mul_quake(
+    complex_s16_t a[],
+    const complex_s16_t b[],
+    const complex_s16_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr);
+    
 /**
  * @brief Add one complex 32-bit vector to another.
  * 
@@ -1215,6 +1231,9 @@ void vect_complex_s32_tail_reverse(
     complex_s32_t x[],
     const unsigned length);
     
+void vect_complex_s16_tail_reverse(
+    complex_s16_t x[],
+    const unsigned N);
 
 /**
  * @brief Get the complex conjugate of a complex 32-bit vector.

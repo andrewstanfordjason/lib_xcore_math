@@ -63,6 +63,7 @@ C_API complex_s64_t conv_complex_double_to_complex_s64(complex_double_t x, const
 C_API void conv_vect_s16_to_double(double output[], const int16_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
 C_API void conv_vect_s32_to_double(double output[], const int32_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
 C_API void conv_vect_complex_s16_to_complex_double(complex_double_t output[], const complex_s16_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
+C_API void conv_vect_complex_s16_to_complex_double_v2(double out_real[], double out_imag[], const complex_s16_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
 C_API void conv_vect_complex_s32_to_complex_double(complex_double_t output[], const complex_s32_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
 C_API void conv_vect_complex_s32_to_complex_double_v2(double out_real[], double out_imag[], const complex_s32_t input[], const unsigned length, const exponent_t input_exp, conv_error_e *error);
 
@@ -93,7 +94,7 @@ C_API unsigned abs_diff_vect_u16(uint16_t * B, const exponent_t B_exp, double * 
 C_API unsigned abs_diff_vect_u32(uint32_t * B, const exponent_t B_exp, double * f, unsigned length,conv_error_e* error);
 
 
-#define TESTING_FLOAT_NUM_DIGITS 22
+#define TESTING_FLOAT_NUM_DIGITS 2
 
 #define PRINT_VAR(VAR, THING)  do{ printf("%s = ", VAR); THING; } while(0)
 

@@ -35,6 +35,12 @@ headroom_t vect_complex_s16_headroom(
     return MIN(hr_re, hr_im);
 }
 
+headroom_t vect_complex_s16_headroom_quake(
+    const complex_s16_t a[],
+    const unsigned length)
+{
+    return vect_s16_headroom((const int16_t*)a, 2*length);
+}
 
 headroom_t vect_complex_s16_real_scale(
     int16_t a_real[],

@@ -578,6 +578,14 @@ void fft_dif_forward (
     headroom_t* hr, 
     exponent_t* exp);
 
+
+C_API
+void fft_dif_forward_quake_s16 (
+    complex_s16_t x[], 
+    const unsigned N, 
+    headroom_t* hr, 
+    exponent_t* exp);
+
 /**
  * @brief Compute an inverse DFT using the decimation-in-frequency IFFT algorithm.
  * 
@@ -615,6 +623,13 @@ void fft_dif_forward (
 C_API
 void fft_dif_inverse (
     complex_s32_t x[], 
+    const unsigned N, 
+    headroom_t* hr, 
+    exponent_t* exp);
+
+C_API
+void fft_dif_inverse_quake_s16 (
+    complex_s16_t x[], 
     const unsigned N, 
     headroom_t* hr, 
     exponent_t* exp);

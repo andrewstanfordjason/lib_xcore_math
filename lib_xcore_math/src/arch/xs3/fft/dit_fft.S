@@ -134,7 +134,9 @@ dit_fft_impl_start:
             {   add r11, s, b                           ;                                           } ////this might be able to go
 
             dit_fft_inner_loop:
-                {                                           ;   vldd r11[0]                             }
+                { add r11, r11, b                       ;   vldd r11[0]                             }
+			{   swap_high_low r11[0]                                                                }
+			{                            ;   vstd r11[0]                             } 
                 {                                           ;   vcmr                                    }
                 {                                           ;   vcmi                                    }
                 {   sub j, j, 1                             ;   vladsb s[0]                             }

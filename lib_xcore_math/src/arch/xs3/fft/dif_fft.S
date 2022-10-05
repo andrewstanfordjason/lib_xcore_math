@@ -85,9 +85,11 @@ dif_fft_round_loop:
 		dif_fft_inner_loop:
 			{   add r11, r11, b                         ;   vldr r11[0]                             }
 			{   sub r11, r11, b                         ;   vladsb r11[0]                           }
-			{   add r11, r11, b                         ;   vstr r11[0]                             }
+			{   nop                                     ;   vstr r11[0]                             }
 			{   sub j, j, _32                           ;   vcmr                                    }
 			{                                           ;   vcmi                                    }
+			{   swap_high_low r11[0]                                                                }
+			{   add r11, r11, b                         ;   vstd r11[0]                             } 
 			{                                           ;   vstr r11[0]                             }
 			{   add r11, r11, b                         ;   bt j, dif_fft_inner_loop                }
 

@@ -84,7 +84,7 @@ void fft_dit_forward (
 {
     const unsigned FFT_N_LOG2 = 31 - CLS_S32(N);
 
-    const complex_s32_t* W = xmath_dit_fft_lut;
+    const complex_s32_t* W = xmath_dit_fft_lut_32;
 
     exponent_t exp_modifier = 0;
 
@@ -158,7 +158,7 @@ void fft_dit_inverse (
 {
     const unsigned FFT_N_LOG2 = 31 - CLS_S32(N);
 
-    const complex_s32_t* W = xmath_dit_fft_lut;
+    const complex_s32_t* W = xmath_dit_fft_lut_32;
 
     exponent_t exp_modifier = 0;
 
