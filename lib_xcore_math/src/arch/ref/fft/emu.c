@@ -40,8 +40,8 @@ void VSBAD(int8_t * output_reg, const int8_t * input_reg, int shift_mode){
 #include <stdio.h>
 void complex_mul_32(int8_t * vR_out, 
     const int8_t * vR_in, 
-    const int8_t * vC_in, 
-    const int8_t * vD_in, int mode, int swap_C, int subword, int neg) {
+    const int8_t * vD_in, 
+    const int8_t * vC_in, int mode, int swap_C, int subword, int neg) {
 
     assert (subword >= 0);
     assert (subword <= 3);
@@ -85,8 +85,8 @@ void complex_mul_32(int8_t * vR_out,
 
 void complex_mul_32_final(int8_t * vR_out, 
     const int8_t * vR_in, 
-    const int8_t * vC_in, 
-    const int8_t * vD_in, int mode, int swap_C, int neg) {
+    const int8_t * vD_in, 
+    const int8_t * vC_in, int mode, int swap_C, int neg) {
 
     for (int i=0; i<4; i++){
         const int32_t * vR_in_32 = (const int32_t* )vR_in;
@@ -199,8 +199,8 @@ void complex_mul_16_final(int8_t * vR_out,
 /////////////////////////////////////////////////////////////////////////
 
 void VCMR_0(int8_t * vR_out, 
-    const int8_t * vD_in, 
-    const int8_t * vC_in, int mode) {
+    const int8_t * vC_in, 
+    const int8_t * vD_in, int mode) {
     int8_t zero[32];
     memset(zero, 0, 32);
     if (mode == 16){
@@ -212,36 +212,36 @@ void VCMR_0(int8_t * vR_out,
     }
 }
 
-void VCMR_1(int8_t * vR_out, 
+void VCMR_1(int8_t * vR_out,
     const int8_t * vC_in, 
     const int8_t * vD_in, 
     const int8_t * vR_in, int mode) {
     if (mode == 16){
         // complex_mul_16_final(vR_out, vR_in, vC_in, vD_in, mode, 0, 1, 1);
     } else if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 0, 1, 1);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 0, 1, 1);
     } else {
         assert(0);
     }
 }
 
-void VCMR_2(int8_t * vR_out, 
+void VCMR_2(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 0, 2, 1);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 0, 2, 1);
     } else {
         assert(0);
     }
 }
 
-void VCMR_3(int8_t * vR_out, 
+void VCMR_3(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32_final(vR_out, vR_in, vC_in, vD_in, mode, 0, 1);
+        complex_mul_32_final(vR_out, vR_in, vD_in, vC_in, mode, 0, 1);
     } else {
         assert(0);
     }
@@ -258,31 +258,31 @@ void VCMI_0(int8_t * vR_out,
     if (mode == 16){
         // complex_mul_16(vR_out, zero, vC_in, vD_in, mode, 0, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, zero, vC_in, vD_in, mode, 1, 0, 0);
+        complex_mul_32(vR_out, zero, vD_in, vC_in, mode, 1, 0, 0);
     } else {
         assert(0);
     }
 }
 
-void VCMI_1(int8_t * vR_out, 
+void VCMI_1(int8_t * vR_out,
     const int8_t * vC_in, 
     const int8_t * vD_in, 
     const int8_t * vR_in, int mode) {
     if (mode == 16){
         // complex_mul_16_final(vR_out, vR_in, vC_in, vD_in, mode, 1, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 1, 1, 0);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 1, 1, 0);
     } else {
         assert(0);
     }
 }
 
-void VCMI_2(int8_t * vR_out, 
+void VCMI_2(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 1, 2, 0);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 1, 2, 0);
     } else {
         assert(0);
     }
@@ -290,10 +290,10 @@ void VCMI_2(int8_t * vR_out,
 
 void VCMI_3(int8_t * vR_out, 
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32_final(vR_out, vR_in, vC_in, vD_in, mode, 1, 0);
+        complex_mul_32_final(vR_out, vR_in, vD_in, vC_in, mode, 1, 0);
     } else {
         assert(0);
     }
@@ -310,20 +310,20 @@ void VCMCR_0(int8_t * vR_out,
     if (mode == 16){
         // complex_mul_16(vR_out, zero, vC_in, vD_in, mode, 0, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, zero, vC_in, vD_in, mode, 0, 0, 0);
+        complex_mul_32(vR_out, zero, vD_in, vC_in, mode, 0, 0, 0);
     } else {
         assert(0);
     }
 }
 
-void VCMCR_1(int8_t * vR_out, 
+void VCMCR_1(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 16){
         // complex_mul_16_final(vR_out, vR_in, vC_in, vD_in, mode, 1, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 0, 1, 0);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 0, 1, 0);
     } else {
         assert(0);
     }
@@ -331,10 +331,10 @@ void VCMCR_1(int8_t * vR_out,
 
 void VCMCR_2(int8_t * vR_out, 
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 0, 2, 0);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 0, 2, 0);
     } else {
         assert(0);
     }
@@ -342,10 +342,10 @@ void VCMCR_2(int8_t * vR_out,
 
 void VCMCR_3(int8_t * vR_out, 
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32_final(vR_out, vR_in, vC_in, vD_in, mode, 0, 0);
+        complex_mul_32_final(vR_out, vR_in, vD_in, vC_in, mode, 0, 0);
     } else {
         assert(0);
     }
@@ -362,31 +362,31 @@ void VCMCI_0(int8_t * vR_out,
     if (mode == 16){
         // complex_mul_16(vR_out, zero, vC_in, vD_in, mode, 0, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, zero, vC_in, vD_in, mode, 1, 0, 1);
+        complex_mul_32(vR_out, zero, vD_in, vC_in, mode, 1, 0, 1);
     } else {
         assert(0);
     }
 }
 
-void VCMCI_1(int8_t * vR_out, 
+void VCMCI_1(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 16){
         // complex_mul_16_final(vR_out, vR_in, vC_in, vD_in, mode, 1, 0);
     } else if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 1, 1, 1);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 1, 1, 1);
     } else {
         assert(0);
     }
 }
 
-void VCMCI_2(int8_t * vR_out, 
+void VCMCI_2(int8_t * vR_out,
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32(vR_out, vR_in, vC_in, vD_in, mode, 1, 2, 1);
+        complex_mul_32(vR_out, vR_in, vD_in, vC_in, mode, 1, 2, 1);
     } else {
         assert(0);
     }
@@ -394,10 +394,10 @@ void VCMCI_2(int8_t * vR_out,
 
 void VCMCI_3(int8_t * vR_out, 
     const int8_t * vC_in, 
-    const int8_t * vD_in, 
+    const int8_t * vD_in,
     const int8_t * vR_in, int mode) {
     if (mode == 32){
-        complex_mul_32_final(vR_out, vR_in, vC_in, vD_in, mode, 1, 1);
+        complex_mul_32_final(vR_out, vR_in, vD_in, vC_in, mode, 1, 1);
     } else {
         assert(0);
     }
