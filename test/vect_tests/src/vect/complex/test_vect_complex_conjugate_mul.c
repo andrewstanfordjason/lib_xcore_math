@@ -410,8 +410,8 @@ TEST(vect_complex_conj_mul, vect_complex_s32_conj_mul_random)
 
         for(int i = 0; i < len; i++){
             complex_s32_t expected = mul_complex_conj_s32(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s32_headroom((int32_t*) A, 2*len), hr, v);
         
@@ -420,8 +420,8 @@ TEST(vect_complex_conj_mul, vect_complex_s32_conj_mul_random)
 
         for(int i = 0; i < len; i++){
             complex_s32_t expected = mul_complex_conj_s32(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s32_headroom((int32_t*) A, 2*len), hr, v);
         
@@ -430,8 +430,8 @@ TEST(vect_complex_conj_mul, vect_complex_s32_conj_mul_random)
 
         for(int i = 0; i < len; i++){
             complex_s32_t expected = mul_complex_conj_s32(B[i], C[i], b_shr, c_shr);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.re, A[i].re, msg_buff);
-            TEST_ASSERT_EQUAL_MESSAGE(expected.im, A[i].im, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.re, A[i].re, msg_buff);
+            TEST_ASSERT_INT32_WITHIN_MESSAGE(1, expected.im, A[i].im, msg_buff);
         }
         TEST_ASSERT_EQUAL_MSG(vect_s32_headroom((int32_t*) A, 2*len), hr, v);
 

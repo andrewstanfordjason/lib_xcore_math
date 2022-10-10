@@ -385,6 +385,127 @@ headroom_t vect_complex_s32_mul(
             ASHR(32)(c[k].im, c_shr),
         };
 
+        int32_t inter_re = 0;
+        int32_t inter_im = 0;
+
+        for (int i=0;i<3;i++){
+            uint8_t b_re = (uint8_t)(B.re>>(8*i));
+            uint8_t b_im = (uint8_t)(B.im>>(8*i));
+
+            int64_t q1_0 = (int64_t)b_re * C.re;
+            int64_t q2_0 = (int64_t)b_im * C.im;
+            int64_t q3_0 = (int64_t)b_re * C.im;
+            int64_t q4_0 = (int64_t)b_im * C.re;
+
+            int64_t t_re = q1_0 - q2_0 + ((int64_t)inter_re << 1);
+            int64_t t_im = q4_0 + q3_0 + ((int64_t)inter_im << 1);
+
+            inter_re = ROUND_SHR(t_re, 9);
+            inter_im = ROUND_SHR(t_im, 9);
+        }
+
+
+        int8_t b_re_h = (int8_t)(B.re>>24);
+        int8_t b_im_h = (int8_t)(B.im>>24);
+
+        int64_t q1_h = (int64_t)b_re_h * C.re;
+        int64_t q2_h = (int64_t)b_im_h * C.im;
+
+        int64_t q3_h = (int64_t)b_re_h * C.im;
+        int64_t q4_h = (int64_t)b_im_h * C.re;
+
+        int64_t a_re = ROUND_SHR(q1_h - q2_h + ((int64_t)inter_re << 1), 6);
+        int64_t a_im = ROUND_SHR(q4_h + q3_h + ((int64_t)inter_im << 1), 6);
+
+        a[k].re = SAT(32)(a_re);
+        a[k].im = SAT(32)(a_im);
+    }
+
+    return vect_complex_s32_headroom(a, length);
+}
+
+
+// complex vector (conjugate) multiplied by complex vector
+
+headroom_t vect_complex_s32_conj_mul(
+    complex_s32_t a[],
+    const complex_s32_t b[],
+    const complex_s32_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+        
+        complex_s32_t B = {
+            ASHR(32)(b[k].re, b_shr), 
+            ASHR(32)(b[k].im, b_shr),
+        };
+
+        complex_s32_t C = {
+            ASHR(32)(c[k].re, c_shr), 
+            ASHR(32)(c[k].im, c_shr),
+        };
+
+        int32_t inter_re = 0;
+        int32_t inter_im = 0;
+
+        for (int i=0;i<3;i++){
+            uint8_t b_re = (uint8_t)(B.re>>(8*i));
+            uint8_t b_im = (uint8_t)(B.im>>(8*i));
+
+            int64_t q1_0 = (int64_t)b_re * C.re;
+            int64_t q2_0 = (int64_t)b_im * C.im;
+            int64_t q3_0 = (int64_t)b_re * C.im;
+            int64_t q4_0 = (int64_t)b_im * C.re;
+
+            int64_t t_re = q1_0 + q2_0 + ((int64_t)inter_re << 1);
+            int64_t t_im = q4_0 - q3_0 + ((int64_t)inter_im << 1);
+
+            inter_re = ROUND_SHR(t_re, 9);
+            inter_im = ROUND_SHR(t_im, 9);
+        }
+
+
+        int8_t b_re_h = (int8_t)(B.re>>24);
+        int8_t b_im_h = (int8_t)(B.im>>24);
+
+        int64_t q1_h = (int64_t)b_re_h * C.re;
+        int64_t q2_h = (int64_t)b_im_h * C.im;
+
+        int64_t q3_h = (int64_t)b_re_h * C.im;
+        int64_t q4_h = (int64_t)b_im_h * C.re;
+
+        int64_t a_re = ROUND_SHR(q1_h + q2_h + ((int64_t)inter_re << 1), 6);
+        int64_t a_im = ROUND_SHR(q4_h - q3_h + ((int64_t)inter_im << 1), 6);
+
+        a[k].re = SAT(32)(a_re);
+        a[k].im = SAT(32)(a_im);
+    }
+
+    return vect_complex_s32_headroom(a, length);
+}
+
+
+headroom_t vect_complex_s32_mul_original(
+    complex_s32_t a[],
+    const complex_s32_t b[],
+    const complex_s32_t c[],
+    const unsigned length,
+    const right_shift_t b_shr,
+    const right_shift_t c_shr)
+{
+    for(int k = 0; k < length; k++){
+        
+        complex_s32_t B = {
+            ASHR(32)(b[k].re, b_shr), 
+            ASHR(32)(b[k].im, b_shr),
+        };
+        complex_s32_t C = {
+            ASHR(32)(c[k].re, c_shr), 
+            ASHR(32)(c[k].im, c_shr),
+        };
+
         int64_t q1 = ROUND_SHR( ((int64_t)B.re) * C.re, 30 );
         int64_t q2 = ROUND_SHR( ((int64_t)B.im) * C.im, 30 );
         int64_t q3 = ROUND_SHR( ((int64_t)B.re) * C.im, 30 );
@@ -400,7 +521,7 @@ headroom_t vect_complex_s32_mul(
 
 // complex vector (conjugate) multiplied by complex vector
 
-headroom_t vect_complex_s32_conj_mul(
+headroom_t vect_complex_s32_conj_mul_original(
     complex_s32_t a[],
     const complex_s32_t b[],
     const complex_s32_t c[],

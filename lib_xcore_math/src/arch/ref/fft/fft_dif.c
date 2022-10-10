@@ -8,6 +8,7 @@
 #include "xmath/xmath.h"
 #include "../../../vect/vpu_helper.h"
 #include "xmath_fft_lut.h"
+#include "emu.h"
 
 //load 4 complex 32-bit values into a buffer
 static void load_vec(
@@ -153,7 +154,7 @@ static void vftfb_quake_s16(
         vR[3+i].im = (int16_t) ASHR(16)(s[2+i].im - s[3+i].im, shift_mode);
     }
 }
-
+#include <stdlib.h>
 void fft_dif_forward (
     complex_s32_t x[], 
     const unsigned N, 
@@ -199,7 +200,16 @@ void fft_dif_forward (
 
                     load_vec(&x[s], vR);
 
-                    vect_complex_s32_mul(vR, vD, vC, 4, 0, 0);
+                    // vect_complex_s32_mul(vR, vD, vC, 4, 0, 0);
+                    VCMR_0(vR, vD, vC, 32);
+                    VCMR_1(vR, vD, vC, vR, 32);
+                    VCMR_2(vR, vD, vC, vR, 32);
+                    VCMR_3(vR, vD, vC, vR, 32);
+
+                    VCMI_0(vR, vD, vC, 32);
+                    VCMI_1(vR, vD, vC, vR, 32);
+                    VCMI_2(vR, vD, vC, vR, 32);
+                    VCMI_3(vR, vD, vC, vR, 32);
 
                     load_vec(&x[s+b], vR);
                     
@@ -213,7 +223,7 @@ void fft_dif_forward (
             
         }
     }
-    
+
 
     for(int j = 0; j < (N>>2); j++){
         load_vec(vR, &x[4*j]);
@@ -293,14 +303,7 @@ void fft_dif_forward_quake_s16 (
 
             load_vec_16(vD, &x[k]);
 
-            for(int i = 0; i < 4; i++){
-                int16_t t_re = ASHR(16)(((int32_t)vD[i+4].re) + vD[i].re, shift_mode);
-                int16_t t_im = ASHR(16)(((int32_t)vD[i+4].im) + vD[i].im, shift_mode);
-                vD[i+4].re   = ASHR(16)(((int32_t)vD[i+4].re) - vD[i].re, shift_mode);
-                vD[i+4].im   = ASHR(16)(((int32_t)vD[i+4].im) - vD[i].im, shift_mode);
-                vD[i].re = t_re;
-                vD[i].im = t_im;
-            }
+            VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
 
             vect_complex_s16_mul_quake(vR, vD, vC, 8, 0, 0);
             load_vec_16(&x[k], vR);
@@ -369,6 +372,15 @@ void fft_dif_inverse_quake_s16 (
                     load_vec_16(&x[s], vR);
 
                     vect_complex_s16_conj_mul_quake(vR, vD, vC, 8, 0, 0);
+                    // VCMCR_0(vR, vC, vD, 32);
+                    // VCMCR_1(vR, vC, vD, vR, 32);
+                    // VCMCR_2(vR, vC, vD, vR, 32);
+                    // VCMCR_3(vR, vC, vD, vR, 32);
+
+                    // VCMCI_0(vR, vC, vD, 32);
+                    // VCMCI_1(vR, vC, vD, vR, 32);
+                    // VCMCI_2(vR, vC, vD, vR, 32);
+                    // VCMCI_3(vR, vC, vD, vR, 32);
 
                     load_vec_16(&x[s+b], vR);
                     
@@ -393,14 +405,7 @@ void fft_dif_inverse_quake_s16 (
 
             load_vec_16(vD, &x[k]);
 
-            for(int i = 0; i < 4; i++){
-                int16_t t_re = ASHR(16)(((int32_t)vD[i+4].re) + vD[i].re, shift_mode);
-                int16_t t_im = ASHR(16)(((int32_t)vD[i+4].im) + vD[i].im, shift_mode);
-                vD[i+4].re   = ASHR(16)(((int32_t)vD[i+4].re) - vD[i].re, shift_mode);
-                vD[i+4].im   = ASHR(16)(((int32_t)vD[i+4].im) - vD[i].im, shift_mode);
-                vD[i].re = t_re;
-                vD[i].im = t_im;
-            }
+            VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
 
             vect_complex_s16_conj_mul_quake(vR, vD, vC, 8, 0, 0);
             load_vec_16(&x[k], vR);
@@ -469,7 +474,23 @@ void fft_dif_inverse (
 
                     load_vec(&x[s], vR);
 
-                    vect_complex_s32_conj_mul(vR, vD, vC, 4, 0, 0);
+                    memset(vR, 0, 32);
+
+                    // vect_complex_s32_conj_mul(vR, vD, vC, 4, 0, 0);
+                    VCMCR_0(vR, vD, vC, 32);
+                    VCMCR_1(vR, vD, vC, vR, 32);
+                    VCMCR_2(vR, vD, vC, vR, 32);
+                    VCMCR_3(vR, vD, vC, vR, 32);
+
+                    VCMCI_0(vR, vD, vC, 32);
+                    VCMCI_1(vR, vD, vC, vR, 32);
+                    VCMCI_2(vR, vD, vC, vR, 32);
+                    VCMCI_3(vR, vD, vC, vR, 32);
+
+                    // for (int i=0;i<4;i++){
+                    //     printf("%d %d\n", vR[i].im, vR[i].re);
+                    // }
+                    // exit(1);
 
                     load_vec(&x[s+b], vR);
                     

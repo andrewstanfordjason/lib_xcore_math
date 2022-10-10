@@ -8,6 +8,8 @@
 #include "../../../vect/vpu_helper.h"
 #include "xmath_fft_lut.h"
 
+#include "emu.h"
+
 //load 4 complex 32-bit values into a buffer
 static void load_vec(
     complex_s32_t dst[], 
@@ -199,15 +201,7 @@ void fft_dit_forward_quake_s16 (
 
             vect_complex_s16_mul_quake(vD, vD, vC, 8, 0, 0);
 
-            //FIXME this is backwards from the dif
-            for(int i = 0; i < 4; i++){
-                int16_t t_re = ASHR(16)(((int32_t)vD[i+4].re) + vD[i].re, shift_mode);
-                int16_t t_im = ASHR(16)(((int32_t)vD[i+4].im) + vD[i].im, shift_mode);
-                vD[i+4].re   = -ASHR(16)(((int32_t)vD[i+4].re) - vD[i].re, shift_mode);
-                vD[i+4].im   = -ASHR(16)(((int32_t)vD[i+4].im) - vD[i].im, shift_mode);
-                vD[i].re = t_re;
-                vD[i].im = t_im;
-            }
+            VSBAD((int8_t *)vD, (const int8_t *)vD, shift_mode);
 
             load_vec_16(&x[k], vD);
 
@@ -240,6 +234,7 @@ void fft_dit_forward_quake_s16 (
                     load_vec_16(vD, &x[s+b]);
 
                     vect_complex_s16_mul_quake(vR, vD, vC, 8, 0, 0);
+
                     for(int i = 0; i < 8; i++){
                         vD[i].re = ASHR(16)(((int32_t)x[s+i].re) - vR[i].re, shift_mode);
                         vD[i].im = ASHR(16)(((int32_t)x[s+i].im) - vR[i].im, shift_mode);
@@ -309,7 +304,16 @@ void fft_dit_forward (
                 for(int j = 0; j < a; j++){
                     load_vec(vD, &x[s+b]);
 
-                    vect_complex_s32_mul(vR, vD, vC, 4, 0, 0);
+                    // vect_complex_s32_mul(vR, vD, vC, 4, 0, 0);
+                    VCMR_0(vR, vD, vC, 32);
+                    VCMR_1(vR, vD, vC, vR, 32);
+                    VCMR_2(vR, vD, vC, vR, 32);
+                    VCMR_3(vR, vD, vC, vR, 32);
+
+                    VCMI_0(vR, vD, vC, 32);
+                    VCMI_1(vR, vD, vC, vR, 32);
+                    VCMI_2(vR, vD, vC, vR, 32);
+                    VCMI_3(vR, vD, vC, vR, 32);
 
                     for(int i = 0; i < 4; i++){
                         vD[i].re = ASHR(32)(((int64_t)x[s+i].re) - vR[i].re, shift_mode);
@@ -379,7 +383,17 @@ void fft_dit_inverse (
                 for(int j = 0; j < a; j++){
                     load_vec(vD, &x[s+b]);
 
-                    vect_complex_s32_conj_mul(vR, vD, vC, 4, 0, 0);
+                    // vect_complex_s32_conj_mul(vR, vD, vC, 4, 0, 0);
+                    VCMCR_0(vR, vD, vC, 32);
+                    VCMCR_1(vR, vD, vC, vR, 32);
+                    VCMCR_2(vR, vD, vC, vR, 32);
+                    VCMCR_3(vR, vD, vC, vR, 32);
+
+                    VCMCI_0(vR, vD, vC, 32);
+                    VCMCI_1(vR, vD, vC, vR, 32);
+                    VCMCI_2(vR, vD, vC, vR, 32);
+                    VCMCI_3(vR, vD, vC, vR, 32);
+
 
                     for(int i = 0; i < 4; i++){
                         vD[i].re = ASHR(32)(((int64_t)x[s+i].re) - vR[i].re, shift_mode);
@@ -444,15 +458,7 @@ void fft_dit_inverse_quake_s16 (
 
             vect_complex_s16_conj_mul_quake(vD, vD, vC, 8, 0, 0);
 
-            //FIXME this is backwards from the dif
-            for(int i = 0; i < 4; i++){
-                int16_t t_re = ASHR(16)(((int32_t)vD[i+4].re) + vD[i].re, shift_mode);
-                int16_t t_im = ASHR(16)(((int32_t)vD[i+4].im) + vD[i].im, shift_mode);
-                vD[i+4].re   = -ASHR(16)(((int32_t)vD[i+4].re) - vD[i].re, shift_mode);
-                vD[i+4].im   = -ASHR(16)(((int32_t)vD[i+4].im) - vD[i].im, shift_mode);
-                vD[i].re = t_re;
-                vD[i].im = t_im;
-            }
+            VSBAD((int8_t *)vD, (const int8_t *)vD, shift_mode);
 
             load_vec_16(&x[k], vD);
         }
