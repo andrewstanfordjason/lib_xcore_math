@@ -28,6 +28,7 @@ add_subdirectory( vect_tests )
 add_subdirectory( bfp_tests  )
 add_subdirectory( fft_tests  )
 add_subdirectory( dct_tests  )
+add_subdirectory( inst_tests  )
 add_subdirectory( filter_tests  )
 add_subdirectory( xs3_tests  )
 

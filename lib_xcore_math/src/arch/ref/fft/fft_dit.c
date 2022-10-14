@@ -28,135 +28,6 @@ static void load_vec_16(
     memcpy(dst, src, sizeof(complex_s16_t) * 8);
 }
 
-static void print_vector_16(const char * name, const complex_s16_t x[]){
-    printf("%s ", name);
-    for (int i=0;i<8;i++){
-        printf("(%.2f+%.2fj) ", (float)x[i].re/(1<<14) ,  (float)x[i].im/(1<<14));
-    }
-    printf("\n");
-}
-
-static void vfttf(
-    complex_s32_t vD[],
-    const right_shift_t shift_mode)
-{
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
-
-    s[0].re = vD[0].re + vD[1].re;
-    s[0].im = vD[0].im + vD[1].im;
-    s[1].re = vD[0].re - vD[1].re;
-    s[1].im = vD[0].im - vD[1].im;
-    s[2].re = vD[2].re + vD[3].re;
-    s[2].im = vD[2].im + vD[3].im;
-    s[3].re = vD[2].im - vD[3].im;
-    s[3].im = vD[3].re - vD[2].re;
-
-    vD[0].re = (int32_t) ASHR(32)(s[0].re + s[2].re, shift_mode);
-    vD[0].im = (int32_t) ASHR(32)(s[0].im + s[2].im, shift_mode);
-    vD[1].re = (int32_t) ASHR(32)(s[1].re + s[3].re, shift_mode);
-    vD[1].im = (int32_t) ASHR(32)(s[1].im + s[3].im, shift_mode);
-    vD[2].re = (int32_t) ASHR(32)(s[0].re - s[2].re, shift_mode);
-    vD[2].im = (int32_t) ASHR(32)(s[0].im - s[2].im, shift_mode);
-    vD[3].re = (int32_t) ASHR(32)(s[1].re - s[3].re, shift_mode);
-    vD[3].im = (int32_t) ASHR(32)(s[1].im - s[3].im, shift_mode);
-}
-
-
-static void vfttf_quake_s16(
-    complex_s16_t vD[],
-    const right_shift_t shift_mode)
-{
-    struct {
-        int32_t re;
-        int32_t im;
-    } s[8];
-
-    for (int i=0; i<8; i+=4){
-        s[0+i].re = vD[0+i].re + vD[1+i].re;
-        s[0+i].im = vD[0+i].im + vD[1+i].im;
-        s[1+i].re = vD[0+i].re - vD[1+i].re;
-        s[1+i].im = vD[0+i].im - vD[1+i].im;
-        s[2+i].re = vD[2+i].re + vD[3+i].re;
-        s[2+i].im = vD[2+i].im + vD[3+i].im;
-        s[3+i].re = vD[2+i].im - vD[3+i].im;
-        s[3+i].im = vD[3+i].re - vD[2+i].re;
-    }
-    for (int i=0; i<8; i+=4){
-        vD[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[2+i].re, shift_mode);
-        vD[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[2+i].im, shift_mode);
-        vD[1+i].re = (int16_t) ASHR(16)(s[1+i].re + s[3+i].re, shift_mode);
-        vD[1+i].im = (int16_t) ASHR(16)(s[1+i].im + s[3+i].im, shift_mode);
-        vD[2+i].re = (int16_t) ASHR(16)(s[0+i].re - s[2+i].re, shift_mode);
-        vD[2+i].im = (int16_t) ASHR(16)(s[0+i].im - s[2+i].im, shift_mode);
-        vD[3+i].re = (int16_t) ASHR(16)(s[1+i].re - s[3+i].re, shift_mode);
-        vD[3+i].im = (int16_t) ASHR(16)(s[1+i].im - s[3+i].im, shift_mode);
-    }
-}
-
-
-static void vfttb(
-    complex_s32_t vD[],
-    const right_shift_t shift_mode)
-{
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
-
-    s[0].re = vD[0].re + vD[1].re;
-    s[0].im = vD[0].im + vD[1].im;
-    s[1].re = vD[0].re - vD[1].re;
-    s[1].im = vD[0].im - vD[1].im;
-    s[2].re = vD[2].re + vD[3].re;
-    s[2].im = vD[2].im + vD[3].im;
-    s[3].re = vD[3].im - vD[2].im;
-    s[3].im = vD[2].re - vD[3].re;
-
-    vD[0].re = (int32_t) ASHR(32)(s[0].re + s[2].re, shift_mode);
-    vD[0].im = (int32_t) ASHR(32)(s[0].im + s[2].im, shift_mode);
-    vD[1].re = (int32_t) ASHR(32)(s[1].re + s[3].re, shift_mode);
-    vD[1].im = (int32_t) ASHR(32)(s[1].im + s[3].im, shift_mode);
-    vD[2].re = (int32_t) ASHR(32)(s[0].re - s[2].re, shift_mode);
-    vD[2].im = (int32_t) ASHR(32)(s[0].im - s[2].im, shift_mode);
-    vD[3].re = (int32_t) ASHR(32)(s[1].re - s[3].re, shift_mode);
-    vD[3].im = (int32_t) ASHR(32)(s[1].im - s[3].im, shift_mode);
-}
-
-static void vfttb_quake_s16(
-    complex_s16_t vD[],
-    const right_shift_t shift_mode)
-{
-    struct {
-        int32_t re;
-        int32_t im;
-    } s[8];
-
-    for (int i=0; i<8; i+=4){
-        s[0+i].re = vD[0+i].re + vD[1+i].re;
-        s[0+i].im = vD[0+i].im + vD[1+i].im;
-        s[1+i].re = vD[0+i].re - vD[1+i].re;
-        s[1+i].im = vD[0+i].im - vD[1+i].im;
-        s[2+i].re = vD[2+i].re + vD[3+i].re;
-        s[2+i].im = vD[2+i].im + vD[3+i].im;
-        s[3+i].re = vD[3+i].im - vD[2+i].im;
-        s[3+i].im = vD[2+i].re - vD[3+i].re;
-    }
-
-    for (int i=0; i<8; i+=4){
-        vD[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[2+i].re, shift_mode);
-        vD[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[2+i].im, shift_mode);
-        vD[1+i].re = (int16_t) ASHR(16)(s[1+i].re + s[3+i].re, shift_mode);
-        vD[1+i].im = (int16_t) ASHR(16)(s[1+i].im + s[3+i].im, shift_mode);
-        vD[2+i].re = (int16_t) ASHR(16)(s[0+i].re - s[2+i].re, shift_mode);
-        vD[2+i].im = (int16_t) ASHR(16)(s[0+i].im - s[2+i].im, shift_mode);
-        vD[3+i].re = (int16_t) ASHR(16)(s[1+i].re - s[3+i].re, shift_mode);
-        vD[3+i].im = (int16_t) ASHR(16)(s[1+i].im - s[3+i].im, shift_mode);
-    }
-}
-
 void fft_dit_forward_quake_s16 (
     complex_s16_t x[], 
     const unsigned N, 
@@ -178,7 +49,7 @@ void fft_dit_forward_quake_s16 (
 
     for(int j = 0; j < (N>>3); j++){
         load_vec_16(vD, &x[8*j]);
-        vfttf_quake_s16(vD, shift_mode);
+        VFTTF(vD, 16, shift_mode);
         load_vec_16(&x[8*j], vD);
     }
 
@@ -199,11 +70,15 @@ void fft_dit_forward_quake_s16 (
         for(int k = 0; k<N; k+=8){
             load_vec_16(vD, &x[k]);
 
-            vect_complex_s16_mul_quake(vD, vD, vC, 8, 0, 0);
+            // vect_complex_s16_mul_quake(vD, vD, vC, 8, 0, 0);
+            VCMR_0(vR, vD, vC, 16);
+            VCMR_1(vR, vD, vC, vR, 16);
 
-            VSBAD((int8_t *)vD, (const int8_t *)vD, shift_mode);
+            VCMI_0(vR, vD, vC, 16);
+            VCMI_1(vR, vD, vC, vR, 16);
 
-            load_vec_16(&x[k], vD);
+            VSBAD((int8_t *)vR, (const int8_t *)vR, shift_mode);
+            load_vec_16(&x[k], vR);
 
         }
 
@@ -233,7 +108,12 @@ void fft_dit_forward_quake_s16 (
                 for(int j = 0; j < a; j++){
                     load_vec_16(vD, &x[s+b]);
 
-                    vect_complex_s16_mul_quake(vR, vD, vC, 8, 0, 0);
+                    // vect_complex_s16_mul_quake(vR, vD, vC, 8, 0, 0);
+                    VCMR_0(vR, vD, vC, 16);
+                    VCMR_1(vR, vD, vC, vR, 16);
+
+                    VCMI_0(vR, vD, vC, 16);
+                    VCMI_1(vR, vD, vC, vR, 16);
 
                     for(int i = 0; i < 8; i++){
                         vD[i].re = ASHR(16)(((int32_t)x[s+i].re) - vR[i].re, shift_mode);
@@ -276,7 +156,7 @@ void fft_dit_forward (
 
     for(int j = 0; j < (N>>2); j++){
         load_vec(vD, &x[4*j]);
-        vfttf(vD, shift_mode);
+        VFTTF(vD, 32, shift_mode);
         load_vec(&x[4*j], vD);
     }
 
@@ -356,7 +236,7 @@ void fft_dit_inverse (
 
     for(int j = 0; j < (N>>2); j++){
         load_vec(vD, &x[4*j]);
-        vfttb(vD, shift_mode);
+        VFTTB(vD, 32, shift_mode);
         load_vec(&x[4*j], vD);
     }
 
@@ -436,7 +316,7 @@ void fft_dit_inverse_quake_s16 (
 
     for(int j = 0; j < (N>>3); j++){
         load_vec_16(vD, &x[8*j]);
-        vfttb_quake_s16(vD, shift_mode);
+        VFTTB(vD, 16, shift_mode);
         load_vec_16(&x[8*j], vD);
     }
     
@@ -456,11 +336,16 @@ void fft_dit_inverse_quake_s16 (
         for(int k = 0; k<N; k+=8){
             load_vec_16(vD, &x[k]);
 
-            vect_complex_s16_conj_mul_quake(vD, vD, vC, 8, 0, 0);
+            // vect_complex_s16_conj_mul_quake(vD, vD, vC, 8, 0, 0);
+            VCMCR_0(vR, vD, vC, 16);
+            VCMCR_1(vR, vD, vC, vR, 16);
 
-            VSBAD((int8_t *)vD, (const int8_t *)vD, shift_mode);
+            VCMCI_0(vR, vD, vC, 16);
+            VCMCI_1(vR, vD, vC, vR, 16);
 
-            load_vec_16(&x[k], vD);
+            VSBAD((int8_t *)vR, (const int8_t *)vR, shift_mode);
+
+            load_vec_16(&x[k], vR);
         }
     } 
 
@@ -487,7 +372,12 @@ void fft_dit_inverse_quake_s16 (
                 for(int j = 0; j < a; j++){
                     load_vec_16(vD, &x[s+b]);
 
-                    vect_complex_s16_conj_mul_quake(vR, vD, vC, 8, 0, 0);
+                    // vect_complex_s16_conj_mul_quake(vR, vD, vC, 8, 0, 0);
+                    VCMCR_0(vR, vD, vC, 16);
+                    VCMCR_1(vR, vD, vC, vR, 16);
+
+                    VCMCI_0(vR, vD, vC, 16);
+                    VCMCI_1(vR, vD, vC, vR, 16);
 
                     for(int i = 0; i < 8; i++){
                         vD[i].re = ASHR(16)(((int32_t)x[s+i].re) - vR[i].re, shift_mode);
