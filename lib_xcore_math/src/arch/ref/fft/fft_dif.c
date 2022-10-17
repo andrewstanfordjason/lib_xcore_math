@@ -170,11 +170,17 @@ void fft_dif_forward_quake_s16 (
 
         for(int k = 0; k<N; k+=8){
 
-            load_vec_16(vD, &x[k]);
+            // load_vec_16(vD, &x[k]);
+            // VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
 
-            VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
+            load_vec_16(vR, &x[k]);
+            complex_s16_t T[24];
+            load_vec_16(T, vR);
+            VLADSB(vD, vR, &T[4], vR, 16, shift_mode);
+            load_vec_16(T, vR);
+            load_vec_16(&T[4], vD);
+            load_vec_16(vD, T);
 
-            // vect_complex_s16_mul_quake(vR, vD, vC, 8, 0, 0);
             VCMR_0(vR, vD, vC, 16);
             VCMR_1(vR, vD, vC, vR, 16);
 
@@ -267,9 +273,16 @@ void fft_dif_inverse_quake_s16 (
 
         for(int k = 0; k<N; k+=8){
 
-            load_vec_16(vD, &x[k]);
+            // load_vec_16(vD, &x[k]);
 
-            VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
+            // VADSB((int8_t *)vD, (const int8_t *)vD, shift_mode);
+            load_vec_16(vR, &x[k]);
+            VLADSB(vD, vR, &x[k+4], vR, 16, shift_mode);
+            
+            complex_s16_t T[12];
+            load_vec_16(T, vR);
+            load_vec_16(&T[4], vD);
+            load_vec_16(vD, T);
 
             VCMCR_0(vR, vD, vC, 16);
             VCMCR_1(vR, vD, vC, vR, 16);

@@ -2,42 +2,6 @@
 #include <assert.h>
 #include <string.h>
 
-void add_sub(int16_t * output_reg, const int16_t * input_reg, int shift_mode, int invert){
-
-    assert(shift_mode <= 1);
-    assert(shift_mode >= -1);
-
-    for(int i = 0; i < 8; i++){
-        int32_t sum = (int32_t)input_reg[i+8] + (int32_t)input_reg[i];
-        int32_t dif = (int32_t)input_reg[i+8] - (int32_t)input_reg[i];
-
-        if (invert)
-            dif = -dif;
-
-        if (shift_mode>=0){
-            sum >>= shift_mode;
-            dif >>= shift_mode;
-        } else {
-            sum <<= (-shift_mode);;
-            dif <<= (-shift_mode);
-        }
-        if (sum > INT16_MAX) sum = INT16_MAX;
-        if (sum < INT16_MIN) sum = INT16_MIN;
-        if (dif > INT16_MAX) dif = INT16_MAX;
-        if (dif < INT16_MIN) dif = INT16_MIN;
-        
-        output_reg[i] = sum;
-        output_reg[i+8] = dif;
-    }
-}
-void VADSB(int8_t * output_reg, const int8_t * input_reg, int shift_mode){
-    add_sub((int16_t * )output_reg, (const int16_t * )input_reg, shift_mode, 0);
-}
-
-void VSBAD(int8_t * output_reg, const int8_t * input_reg, int shift_mode){
-    add_sub((int16_t * )output_reg, (const int16_t * )input_reg, shift_mode, 1);
-}
-
 void VCMR_0(int8_t * vR_out, 
     const int8_t * vC_in, 
     const int8_t * vD_in, int mode) {

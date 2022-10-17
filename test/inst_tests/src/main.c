@@ -21,6 +21,7 @@ int main(int argc, const char* argv[])
     RUN_TEST_GROUP(inst_vlmul);
     RUN_TEST_GROUP(inst_vlmaccr);
     RUN_TEST_GROUP(inst_vlmacc);
+    // RUN_TEST_GROUP(inst_vcmr);
 
 
     return UNITY_END();

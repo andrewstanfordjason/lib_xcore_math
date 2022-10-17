@@ -28,6 +28,14 @@ static void load_vec_16(
     memcpy(dst, src, sizeof(complex_s16_t) * 8);
 }
 
+#include<string.h>
+static void load_vec_16_half(
+    complex_s16_t dst[], 
+    const complex_s16_t src[])
+{
+    memcpy(dst, src, sizeof(complex_s16_t) * 4);
+}
+
 void fft_dit_forward_quake_s16 (
     complex_s16_t x[], 
     const unsigned N, 
@@ -77,9 +85,12 @@ void fft_dit_forward_quake_s16 (
             VCMI_0(vR, vD, vC, 16);
             VCMI_1(vR, vD, vC, vR, 16);
 
-            VSBAD((int8_t *)vR, (const int8_t *)vR, shift_mode);
+            complex_s16_t T[24];
+            load_vec_16(T, vR);
+            load_vec_16(vR, &T[4]);
+            VLADSB(vD, vR, T, vR, 16, shift_mode);
             load_vec_16(&x[k], vR);
-
+            load_vec_16_half(&x[k+4], vD);
         }
 
     }
@@ -294,6 +305,8 @@ void fft_dit_inverse (
     *exp = *exp + exp_modifier;
 }
 
+#include<stdlib.h>
+
 void fft_dit_inverse_quake_s16 (
     complex_s16_t x[], 
     const unsigned N, 
@@ -343,9 +356,30 @@ void fft_dit_inverse_quake_s16 (
             VCMCI_0(vR, vD, vC, 16);
             VCMCI_1(vR, vD, vC, vR, 16);
 
-            VSBAD((int8_t *)vR, (const int8_t *)vR, shift_mode);
+            // VSBAD((int8_t *)vR, (const int8_t *)vR, shift_mode);
+            // load_vec_16(&x[k], vR);
 
+            //store vR in T
+            complex_s16_t T[24];
+            load_vec_16(T, vR);
+            load_vec_16(vR, &T[4]);
+            VLADSB(vD, vR, T, vR, 16, shift_mode);
             load_vec_16(&x[k], vR);
+            load_vec_16_half(&x[k+4], vD);
+
+            // printf("\n");
+            // // load_vec_16(vR, &x[k]);
+            // for (int i=0;i<8;i++){
+            //     printf("%d %d %d\n", i, vD[i].re, vD[i].im);
+            // }
+            // printf("\n");
+            // for (int i=0;i<8;i++){
+            //     printf("%d %d %d\n", i, vR[i].re, vR[i].im);
+            // }
+            // exit(1);
+
+
+
         }
     } 
 
