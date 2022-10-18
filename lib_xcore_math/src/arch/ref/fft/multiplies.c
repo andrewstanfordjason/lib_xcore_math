@@ -16,7 +16,7 @@ void VLMUL_0(int8_t * vR_out, int8_t * vD_out, const int8_t * vR_in, const int8_
 
         for (int i=0;i<16;i++){
             int64_t t = (int64_t)Mem_in_16[i] * (uint8_t)vR_in_16[i];
-            vD_out_16[i] =  (t + (1<<7)) >> 8;
+            vD_out_16[i] = t >> 8;
         }
     } else if (mode == 32){
         int32_t * vD_out_32 = (int32_t *)vD_out;
@@ -25,7 +25,7 @@ void VLMUL_0(int8_t * vR_out, int8_t * vD_out, const int8_t * vR_in, const int8_
 
         for (int i=0;i<8;i++){
             int64_t t = (int64_t)Mem_in_32[i] *  (uint8_t)vR_in_32[i];
-            vD_out_32[i] =  (t + (1<<7)) >> 8;
+            vD_out_32[i] = t >> 8;
         }
     } else{
         assert(0);
@@ -56,7 +56,7 @@ void VLMUL_1(int8_t * vR_out, int8_t * vD_out, const int8_t * vD_in, const int8_
         for (int i=0;i<8;i++){
             int64_t t = (int64_t)Mem_in_32[i] *  (uint8_t)(vR_in_32[i]>>8);
             t += vD_in_32[i];
-            vD_out_32[i] =  (t + (1<<7)) >> 8;
+            vD_out_32[i] = t >> 8;
         }
     } else{
         assert(0);
@@ -87,7 +87,7 @@ void VLMUL_2(int8_t * vR_out, int8_t * vD_out, const int8_t * vD_in, const int8_
         for (int i=0;i<8;i++){
             int64_t t = (int64_t)Mem_in_32[i] *  (uint8_t)(vR_in_32[i]>>16);
             t += vD_in_32[i];
-            vD_out_32[i] =  (t + (1<<7)) >> 8;
+            vD_out_32[i] = t >> 8;
         }
     } else{
         assert(0);
@@ -169,8 +169,7 @@ void VLMACC_0(int8_t * vD_out, int8_t * vR_out, int8_t * vD_in, int8_t * vR_in, 
             int64_t t = (int64_t)Mem_in_16[i] * (uint8_t)vC_in_16[i];
 
             t += accu;
-            accu = (t+1) >> 1; 
-            // accu = (t) >> 1; 
+            accu = (t+0) >> 1;
 
             vR_out_16[i] = ((int16_t*)&accu)[0];
             vD_out_16[i] = ((int16_t*)&accu)[1];

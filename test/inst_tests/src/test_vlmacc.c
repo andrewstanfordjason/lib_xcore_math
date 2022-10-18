@@ -17,6 +17,7 @@
 TEST_GROUP_RUNNER(inst_vlmacc) {
   RUN_TEST_CASE(inst_vlmacc, vlmacc_s8xs8_basic);
   RUN_TEST_CASE(inst_vlmacc, vlmacc_s16xs16_basic);
+//   RUN_TEST_CASE(inst_vlmacc, vlmacc_s16xs16_sweep);
   RUN_TEST_CASE(inst_vlmacc, vlmacc_s32xs32_basic);
 }
 
@@ -187,6 +188,65 @@ TEST(inst_vlmacc, vlmacc_s16xs16_basic)
 
 
     // printf("error:%f abs_error:%f\n", (double)error / (REPS*16), (double)abs_error / (REPS*16));
+}
+
+
+TEST(inst_vlmacc, vlmacc_s16xs16_sweep)
+{
+
+    int32_t accu_ref[S16_LEN]; 
+    int16_t vR[S16_LEN];    
+    int16_t vD[S16_LEN];
+
+    int16_t vC[S16_LEN];
+    int16_t Mem[S16_LEN];
+
+
+    int64_t error = 0;
+    int64_t abs_error = 0;
+    int max_error= 0;
+
+    for (int32_t v_accu = 0; v_accu < 2; v_accu ++){
+
+        for(int32_t a = INT16_MIN; a < INT16_MAX; a++){
+
+            for(int32_t b = INT16_MIN; b < INT16_MAX;){
+
+                for(int i = 0; i < S16_LEN; i++)
+                for(int i = 0; i < S16_LEN; i++){
+                    accu_ref[i] = v_accu;
+                    int32_t accu = v_accu;
+                    ((int16_t*)vR)[i] = ((int16_t*)&accu)[0];
+                    ((int16_t*)vD)[i] = ((int16_t*)&accu)[1];
+                }
+
+                for(int i = 0; i < S16_LEN; i++)
+                    vC[i] = a;
+
+                for(int i = 0; i < S16_LEN; i++)
+                    Mem[i] = b++;
+
+                ref_vlmacc_s16(accu_ref, vC, Mem);
+
+                VLMACC_0(vD, vR, vD, vR, Mem, vC, 16);
+                VLMACC_1(vD, vR, vD, vR, Mem, vC, 16);
+
+                for(int i = 0; i < S16_LEN; i++){
+                    int32_t accu = 0;
+                    ((int16_t*)&accu)[0] = ((int16_t*)vR)[i];
+                    ((int16_t*)&accu)[1] = ((int16_t*)vD)[i];
+                    TEST_ASSERT_INT32_WITHIN(1, accu, accu_ref[i]);
+                    int64_t e = (int64_t)accu_ref[i] - (int64_t)accu;
+
+                    error += e;
+                    if (e<0) e=-e;
+                    abs_error += e;
+                }
+            }
+        }
+    }
+
+    printf("error:%lld abs_error:%lld\n", error, abs_error);
 }
 
 

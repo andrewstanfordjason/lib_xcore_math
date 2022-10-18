@@ -17,7 +17,7 @@
 TEST_GROUP_RUNNER(inst_vlmul) {
   RUN_TEST_CASE(inst_vlmul, vlmul_s8x8_basic);
   RUN_TEST_CASE(inst_vlmul, vlmul_s16x16_basic);
-//   RUN_TEST_CASE(inst_vlmul, vlmul_s16xu16_basic);
+//   RUN_TEST_CASE(inst_vlmul, vlmul_s16x16_sweep);
   RUN_TEST_CASE(inst_vlmul, vlmul_s32x32_basic);
 }
 
@@ -55,12 +55,12 @@ void ref_vlmul_s16(int16_t * vR, int16_t * mem){
     }
 }
 
-void ref_vlmul_s16xu16(int16_t * vR, uint16_t * mem){
-    for(int i=0;i<16;i++){
-        int32_t v = (int32_t)(vR[i]) * (uint32_t)mem[i];
-        vR[i] = ( v + (1<<15)) >> 16;
-    }
-}
+// void ref_vlmul_s16xu16(int16_t * vR, uint16_t * mem){
+//     for(int i=0;i<16;i++){
+//         int32_t v = (int32_t)(vR[i]) * (uint32_t)mem[i];
+//         vR[i] = ( v + (1<<15)) >> 16;
+//     }
+// }
 
 void ref_vlmul_s32(int32_t * vR, int32_t * mem){
     for(int i=0;i<8;i++){
@@ -74,6 +74,8 @@ void VLMUL_1(int8_t * vR_out, int8_t * vD_out, const int8_t * vD_in, const int8_
 void VLMUL_2(int8_t * vR_out, int8_t * vD_out, const int8_t * vD_in, const int8_t * vR_in, const int8_t * Mem_in, int mode);
 void VLMUL_3(int8_t * vR_out, int8_t * vD_out, const int8_t * vD_in, const int8_t * vR_in, const int8_t * Mem_in, int mode);
 
+#define S32_LEN 8
+#define S16_LEN 16
 #define S8_LEN 32
 TEST(inst_vlmul, vlmul_s8x8_basic)
 {
@@ -112,7 +114,6 @@ TEST(inst_vlmul, vlmul_s8x8_basic)
 }
 
 
-#define S16_LEN 16
 TEST(inst_vlmul, vlmul_s16x16_basic)
 {
     
@@ -146,8 +147,38 @@ TEST(inst_vlmul, vlmul_s16x16_basic)
         ref_vlmul_s16(A_ref, B);
 
         for(int i = 0; i < len; i++)
-            TEST_ASSERT_INT16_WITHIN(1, A[i], A_ref[i]);
+            TEST_ASSERT_EQUAL_INT16(A[i], A_ref[i]);
 
+    }
+}
+
+TEST(inst_vlmul, vlmul_s16x16_sweep)
+{
+
+    int16_t A_ref[S16_LEN];
+    int16_t A[S16_LEN];
+    int16_t B[S16_LEN];
+    int16_t vD[S16_LEN];
+
+    for(int32_t a = INT16_MIN; a < INT16_MAX; a++){
+
+        for(int32_t b = INT16_MIN; b < INT16_MAX;){
+
+            for(int i = 0; i < S16_LEN; i++)
+                A[i] = a;
+            memcpy(A_ref, A, sizeof(A));
+
+            for(int i = 0; i < S16_LEN; i++)
+                B[i] = b++;
+
+            VLMUL_0(A, vD, A, B, 16);
+            VLMUL_1(A, vD, vD, A, B, 16);
+
+            ref_vlmul_s16(A_ref, B);
+
+            for(int i = 0; i < S16_LEN; i++)
+                TEST_ASSERT_EQUAL_INT16(A[i], A_ref[i]);
+        }
     }
 }
 
@@ -190,7 +221,6 @@ TEST(inst_vlmul, vlmul_s16x16_basic)
 //     }
 // }
 
-#define S32_LEN 8
 TEST(inst_vlmul, vlmul_s32x32_basic)
 {
     
@@ -226,7 +256,7 @@ TEST(inst_vlmul, vlmul_s32x32_basic)
         ref_vlmul_s32(A_ref, B);
 
         for(int i = 0; i < len; i++)
-            TEST_ASSERT_INT32_WITHIN(1, A[i], A_ref[i]);
+            TEST_ASSERT_EQUAL_INT32( A[i], A_ref[i]);
 
     }
 }
