@@ -429,7 +429,6 @@ void VLADSB(int8_t * vD_out, int8_t * vR_out, const int8_t * Mem_in, const int8_
     }
 }
 
-#include "xmath/xmath.h"
 #define SAT16(VAL)      (((VAL) >= INT16_MAX)? INT16_MAX : (((VAL) <= INT16_MIN)? INT16_MIN : (VAL)))
 #define SAT32(VAL)      (((VAL) >= INT32_MAX)? INT32_MAX : (((VAL) <= INT32_MIN)? INT32_MIN : (VAL)))
 
@@ -439,283 +438,261 @@ void VLADSB(int8_t * vD_out, int8_t * vR_out, const int8_t * Mem_in, const int8_
 #define ASHR(BITS)  ASHR##BITS
 
 static void vftff(
-    complex_s32_t vR[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
 
-    s[0].re = vR[0].re + vR[2].re;
-    s[0].im = vR[0].im + vR[2].im;
-    s[1].re = vR[1].re + vR[3].re;
-    s[1].im = vR[1].im + vR[3].im;
-    s[2].re = vR[0].re - vR[2].re;
-    s[2].im = vR[0].im - vR[2].im;
-    s[3].re = vR[1].im - vR[3].im;
-    s[3].im = vR[3].re - vR[1].re;
+    int64_t s[8];
 
-    vR[0].re = (int32_t) ASHR(32)(s[0].re + s[1].re, shift_mode);
-    vR[0].im = (int32_t) ASHR(32)(s[0].im + s[1].im, shift_mode);
-    vR[1].re = (int32_t) ASHR(32)(s[0].re - s[1].re, shift_mode);
-    vR[1].im = (int32_t) ASHR(32)(s[0].im - s[1].im, shift_mode);
-    vR[2].re = (int32_t) ASHR(32)(s[2].re + s[3].re, shift_mode);
-    vR[2].im = (int32_t) ASHR(32)(s[2].im + s[3].im, shift_mode);
-    vR[3].re = (int32_t) ASHR(32)(s[2].re - s[3].re, shift_mode);
-    vR[3].im = (int32_t) ASHR(32)(s[2].im - s[3].im, shift_mode);
+    s[0] =  (int64_t)((int32_t *)v)[0] + ((int32_t *)v)[4];
+    s[1] =  (int64_t)((int32_t *)v)[1] + ((int32_t *)v)[5];
+    s[2] =  (int64_t)((int32_t *)v)[2] + ((int32_t *)v)[6];
+    s[3] =  (int64_t)((int32_t *)v)[3] + ((int32_t *)v)[7];
+    s[4] =  (int64_t)((int32_t *)v)[0] - ((int32_t *)v)[4];
+    s[5] =  (int64_t)((int32_t *)v)[1] - ((int32_t *)v)[5];
+    s[6] =  (int64_t)((int32_t *)v)[3] - ((int32_t *)v)[7];
+    s[7] =  (int64_t)((int32_t *)v)[6] - ((int32_t *)v)[2];
+
+    ((int32_t *)v)[0] = (int32_t) ASHR(32)(s[0] + s[2], shift_mode);
+    ((int32_t *)v)[1] = (int32_t) ASHR(32)(s[1] + s[3], shift_mode);
+    ((int32_t *)v)[2] = (int32_t) ASHR(32)(s[0] - s[2], shift_mode);
+    ((int32_t *)v)[3] = (int32_t) ASHR(32)(s[1] - s[3], shift_mode);
+    ((int32_t *)v)[4] = (int32_t) ASHR(32)(s[4] + s[6], shift_mode);
+    ((int32_t *)v)[5] = (int32_t) ASHR(32)(s[5] + s[7], shift_mode);
+    ((int32_t *)v)[6] = (int32_t) ASHR(32)(s[4] - s[6], shift_mode);
+    ((int32_t *)v)[7] = (int32_t) ASHR(32)(s[5] - s[7], shift_mode);
 }
 
 static void vftff_quake_s16(
-    complex_s16_t vR[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int32_t re;
-        int32_t im;
-    } s[8];
 
     for (int i=0; i<8; i+=4){
-        s[0+i].re = vR[0+i].re + vR[2+i].re;
-        s[0+i].im = vR[0+i].im + vR[2+i].im;
-        s[1+i].re = vR[1+i].re + vR[3+i].re;
-        s[1+i].im = vR[1+i].im + vR[3+i].im;
-        s[2+i].re = vR[0+i].re - vR[2+i].re;
-        s[2+i].im = vR[0+i].im - vR[2+i].im;
-        s[3+i].re = vR[1+i].im - vR[3+i].im;
-        s[3+i].im = vR[3+i].re - vR[1+i].re;
-    }
 
-    for (int i=0; i<8; i+=4){
-        vR[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[1+i].re, shift_mode);
-        vR[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[1+i].im, shift_mode);
-        vR[1+i].re = (int16_t) ASHR(16)(s[0+i].re - s[1+i].re, shift_mode);
-        vR[1+i].im = (int16_t) ASHR(16)(s[0+i].im - s[1+i].im, shift_mode);
-        vR[2+i].re = (int16_t) ASHR(16)(s[2+i].re + s[3+i].re, shift_mode);
-        vR[2+i].im = (int16_t) ASHR(16)(s[2+i].im + s[3+i].im, shift_mode);
-        vR[3+i].re = (int16_t) ASHR(16)(s[2+i].re - s[3+i].re, shift_mode);
-        vR[3+i].im = (int16_t) ASHR(16)(s[2+i].im - s[3+i].im, shift_mode);
+        int32_t s[8];
+
+        s[0] =  (int32_t)((int16_t *)v)[2*i+0] + ((int16_t *)v)[2*i+4];
+        s[1] =  (int32_t)((int16_t *)v)[2*i+1] + ((int16_t *)v)[2*i+5];
+        s[2] =  (int32_t)((int16_t *)v)[2*i+2] + ((int16_t *)v)[2*i+6];
+        s[3] =  (int32_t)((int16_t *)v)[2*i+3] + ((int16_t *)v)[2*i+7];
+        s[4] =  (int32_t)((int16_t *)v)[2*i+0] - ((int16_t *)v)[2*i+4];
+        s[5] =  (int32_t)((int16_t *)v)[2*i+1] - ((int16_t *)v)[2*i+5];
+        s[6] =  (int32_t)((int16_t *)v)[2*i+3] - ((int16_t *)v)[2*i+7];
+        s[7] =  (int32_t)((int16_t *)v)[2*i+6] - ((int16_t *)v)[2*i+2];
+
+        ((int16_t *)v)[2*i+0] = (int16_t) ASHR(16)(s[0] + s[2], shift_mode);
+        ((int16_t *)v)[2*i+1] = (int16_t) ASHR(16)(s[1] + s[3], shift_mode);
+        ((int16_t *)v)[2*i+2] = (int16_t) ASHR(16)(s[0] - s[2], shift_mode);
+        ((int16_t *)v)[2*i+3] = (int16_t) ASHR(16)(s[1] - s[3], shift_mode);
+        ((int16_t *)v)[2*i+4] = (int16_t) ASHR(16)(s[4] + s[6], shift_mode);
+        ((int16_t *)v)[2*i+5] = (int16_t) ASHR(16)(s[5] + s[7], shift_mode);
+        ((int16_t *)v)[2*i+6] = (int16_t) ASHR(16)(s[4] - s[6], shift_mode);
+        ((int16_t *)v)[2*i+7] = (int16_t) ASHR(16)(s[5] - s[7], shift_mode);
     }
 }
 
 void VFTFF(int8_t * vD, int mode, int shift_mode){
     if (mode == 16){
-        vftff_quake_s16((complex_s16_t*)vD, shift_mode);
+        vftff_quake_s16(vD, shift_mode);
     } else if (mode == 32){
-        vftff((complex_s32_t*)vD, shift_mode);
+        vftff(vD, shift_mode);
     } else{
         assert(0);
     }
 }
 
 static void vftfb(
-    complex_s32_t vR[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
 
-    s[0].re = vR[0].re + vR[2].re;
-    s[0].im = vR[0].im + vR[2].im;
-    s[1].re = vR[1].re + vR[3].re;
-    s[1].im = vR[1].im + vR[3].im;
-    s[2].re = vR[0].re - vR[2].re;
-    s[2].im = vR[0].im - vR[2].im;
-    s[3].re = vR[3].im - vR[1].im;
-    s[3].im = vR[1].re - vR[3].re;
+    int64_t s[8];
 
-    vR[0].re = (int32_t) ASHR(32)(s[0].re + s[1].re, shift_mode);
-    vR[0].im = (int32_t) ASHR(32)(s[0].im + s[1].im, shift_mode);
-    vR[1].re = (int32_t) ASHR(32)(s[0].re - s[1].re, shift_mode);
-    vR[1].im = (int32_t) ASHR(32)(s[0].im - s[1].im, shift_mode);
-    vR[2].re = (int32_t) ASHR(32)(s[2].re + s[3].re, shift_mode);
-    vR[2].im = (int32_t) ASHR(32)(s[2].im + s[3].im, shift_mode);
-    vR[3].re = (int32_t) ASHR(32)(s[2].re - s[3].re, shift_mode);
-    vR[3].im = (int32_t) ASHR(32)(s[2].im - s[3].im, shift_mode);
+    s[0] = (int64_t)((int32_t *)v)[0] + (int64_t)((int32_t *)v)[4];
+    s[1] = (int64_t)((int32_t *)v)[1] + (int64_t)((int32_t *)v)[5];
+    s[2] = (int64_t)((int32_t *)v)[2] + (int64_t)((int32_t *)v)[6];
+    s[3] = (int64_t)((int32_t *)v)[3] + (int64_t)((int32_t *)v)[7];
+    s[4] = (int64_t)((int32_t *)v)[0] - (int64_t)((int32_t *)v)[4];
+    s[5] = (int64_t)((int32_t *)v)[1] - (int64_t)((int32_t *)v)[5];
+    s[6] = (int64_t)((int32_t *)v)[7] - (int64_t)((int32_t *)v)[3];
+    s[7] = (int64_t)((int32_t *)v)[2] - (int64_t)((int32_t *)v)[6];
+
+    ((int32_t *)v)[0] = (int32_t) ASHR(32)(s[0] + s[2], shift_mode);
+    ((int32_t *)v)[1] = (int32_t) ASHR(32)(s[1] + s[3], shift_mode);
+    ((int32_t *)v)[2] = (int32_t) ASHR(32)(s[0] - s[2], shift_mode);
+    ((int32_t *)v)[3] = (int32_t) ASHR(32)(s[1] - s[3], shift_mode);
+    ((int32_t *)v)[4] = (int32_t) ASHR(32)(s[4] + s[6], shift_mode);
+    ((int32_t *)v)[5] = (int32_t) ASHR(32)(s[5] + s[7], shift_mode);
+    ((int32_t *)v)[6] = (int32_t) ASHR(32)(s[4] - s[6], shift_mode);
+    ((int32_t *)v)[7] = (int32_t) ASHR(32)(s[5] - s[7], shift_mode);
 }
 
 static void vftfb_quake_s16(
-    complex_s16_t vR[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[8];
 
     for (int i=0; i<8; i+=4){
-        s[0+i].re = vR[0+i].re + vR[2+i].re;
-        s[0+i].im = vR[0+i].im + vR[2+i].im;
-        s[1+i].re = vR[1+i].re + vR[3+i].re;
-        s[1+i].im = vR[1+i].im + vR[3+i].im;
-        s[2+i].re = vR[0+i].re - vR[2+i].re;
-        s[2+i].im = vR[0+i].im - vR[2+i].im;
-        s[3+i].re = vR[3+i].im - vR[1+i].im;
-        s[3+i].im = vR[1+i].re - vR[3+i].re;
-    }
 
-    for (int i=0; i<8; i+=4){
-        vR[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[1+i].re, shift_mode);
-        vR[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[1+i].im, shift_mode);
-        vR[1+i].re = (int16_t) ASHR(16)(s[0+i].re - s[1+i].re, shift_mode);
-        vR[1+i].im = (int16_t) ASHR(16)(s[0+i].im - s[1+i].im, shift_mode);
-        vR[2+i].re = (int16_t) ASHR(16)(s[2+i].re + s[3+i].re, shift_mode);
-        vR[2+i].im = (int16_t) ASHR(16)(s[2+i].im + s[3+i].im, shift_mode);
-        vR[3+i].re = (int16_t) ASHR(16)(s[2+i].re - s[3+i].re, shift_mode);
-        vR[3+i].im = (int16_t) ASHR(16)(s[2+i].im - s[3+i].im, shift_mode);
+        int32_t s[8];
+
+        s[0] = (int32_t)((int16_t *)v)[2*i+0] + (int32_t)((int16_t *)v)[2*i+4];
+        s[1] = (int32_t)((int16_t *)v)[2*i+1] + (int32_t)((int16_t *)v)[2*i+5];
+        s[2] = (int32_t)((int16_t *)v)[2*i+2] + (int32_t)((int16_t *)v)[2*i+6];
+        s[3] = (int32_t)((int16_t *)v)[2*i+3] + (int32_t)((int16_t *)v)[2*i+7];
+        s[4] = (int32_t)((int16_t *)v)[2*i+0] - (int32_t)((int16_t *)v)[2*i+4];
+        s[5] = (int32_t)((int16_t *)v)[2*i+1] - (int32_t)((int16_t *)v)[2*i+5];
+        s[6] = (int32_t)((int16_t *)v)[2*i+7] - (int32_t)((int16_t *)v)[2*i+3];
+        s[7] = (int32_t)((int16_t *)v)[2*i+2] - (int32_t)((int16_t *)v)[2*i+6];
+
+        ((int16_t *)v)[2*i+0] = (int16_t) ASHR(16)(s[0] + s[2], shift_mode);
+        ((int16_t *)v)[2*i+1] = (int16_t) ASHR(16)(s[1] + s[3], shift_mode);
+        ((int16_t *)v)[2*i+2] = (int16_t) ASHR(16)(s[0] - s[2], shift_mode);
+        ((int16_t *)v)[2*i+3] = (int16_t) ASHR(16)(s[1] - s[3], shift_mode);
+        ((int16_t *)v)[2*i+4] = (int16_t) ASHR(16)(s[4] + s[6], shift_mode);
+        ((int16_t *)v)[2*i+5] = (int16_t) ASHR(16)(s[5] + s[7], shift_mode);
+        ((int16_t *)v)[2*i+6] = (int16_t) ASHR(16)(s[4] - s[6], shift_mode);
+        ((int16_t *)v)[2*i+7] = (int16_t) ASHR(16)(s[5] - s[7], shift_mode);
     }
 }
 
 
 void VFTFB(int8_t * vD, int mode, int shift_mode){
     if (mode == 16){
-        vftfb_quake_s16((complex_s16_t*)vD, shift_mode);
+        vftfb_quake_s16(vD, shift_mode);
     } else if (mode == 32){
-        vftfb((complex_s32_t*)vD, shift_mode);
+        vftfb(vD, shift_mode);
     } else{
         assert(0);
     }
 }
 
 static void vfttf(
-    complex_s32_t vD[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
 
-    s[0].re = vD[0].re + vD[1].re;
-    s[0].im = vD[0].im + vD[1].im;
-    s[1].re = vD[0].re - vD[1].re;
-    s[1].im = vD[0].im - vD[1].im;
-    s[2].re = vD[2].re + vD[3].re;
-    s[2].im = vD[2].im + vD[3].im;
-    s[3].re = vD[2].im - vD[3].im;
-    s[3].im = vD[3].re - vD[2].re;
+        int64_t s[8];
 
-    vD[0].re = (int32_t) ASHR(32)(s[0].re + s[2].re, shift_mode);
-    vD[0].im = (int32_t) ASHR(32)(s[0].im + s[2].im, shift_mode);
-    vD[1].re = (int32_t) ASHR(32)(s[1].re + s[3].re, shift_mode);
-    vD[1].im = (int32_t) ASHR(32)(s[1].im + s[3].im, shift_mode);
-    vD[2].re = (int32_t) ASHR(32)(s[0].re - s[2].re, shift_mode);
-    vD[2].im = (int32_t) ASHR(32)(s[0].im - s[2].im, shift_mode);
-    vD[3].re = (int32_t) ASHR(32)(s[1].re - s[3].re, shift_mode);
-    vD[3].im = (int32_t) ASHR(32)(s[1].im - s[3].im, shift_mode);
+        s[0] = (int64_t)((int32_t *)v)[0] + (int64_t)((int32_t *)v)[2];
+        s[1] = (int64_t)((int32_t *)v)[1] + (int64_t)((int32_t *)v)[3];
+        s[2] = (int64_t)((int32_t *)v)[0] - (int64_t)((int32_t *)v)[2];
+        s[3] = (int64_t)((int32_t *)v)[1] - (int64_t)((int32_t *)v)[3];
+        s[4] = (int64_t)((int32_t *)v)[4] + (int64_t)((int32_t *)v)[6];
+        s[5] = (int64_t)((int32_t *)v)[5] + (int64_t)((int32_t *)v)[7];
+        s[6] = (int64_t)((int32_t *)v)[5] - (int64_t)((int32_t *)v)[7];
+        s[7] = (int64_t)((int32_t *)v)[6] - (int64_t)((int32_t *)v)[4];
+
+        ((int32_t *)v)[0] = (int32_t) ASHR(32)(s[0] + s[4], shift_mode);
+        ((int32_t *)v)[1] = (int32_t) ASHR(32)(s[1] + s[5], shift_mode);
+        ((int32_t *)v)[2] = (int32_t) ASHR(32)(s[2] + s[6], shift_mode);
+        ((int32_t *)v)[3] = (int32_t) ASHR(32)(s[3] + s[7], shift_mode);
+        ((int32_t *)v)[4] = (int32_t) ASHR(32)(s[0] - s[4], shift_mode);
+        ((int32_t *)v)[5] = (int32_t) ASHR(32)(s[1] - s[5], shift_mode);
+        ((int32_t *)v)[6] = (int32_t) ASHR(32)(s[2] - s[6], shift_mode);
+        ((int32_t *)v)[7] = (int32_t) ASHR(32)(s[3] - s[7], shift_mode);
 }
 
 
 static void vfttf_quake_s16(
-    complex_s16_t vD[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int32_t re;
-        int32_t im;
-    } s[8];
+    for (int i=0; i<8; i+=4){
 
-    for (int i=0; i<8; i+=4){
-        s[0+i].re = vD[0+i].re + vD[1+i].re;
-        s[0+i].im = vD[0+i].im + vD[1+i].im;
-        s[1+i].re = vD[0+i].re - vD[1+i].re;
-        s[1+i].im = vD[0+i].im - vD[1+i].im;
-        s[2+i].re = vD[2+i].re + vD[3+i].re;
-        s[2+i].im = vD[2+i].im + vD[3+i].im;
-        s[3+i].re = vD[2+i].im - vD[3+i].im;
-        s[3+i].im = vD[3+i].re - vD[2+i].re;
-    }
-    for (int i=0; i<8; i+=4){
-        vD[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[2+i].re, shift_mode);
-        vD[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[2+i].im, shift_mode);
-        vD[1+i].re = (int16_t) ASHR(16)(s[1+i].re + s[3+i].re, shift_mode);
-        vD[1+i].im = (int16_t) ASHR(16)(s[1+i].im + s[3+i].im, shift_mode);
-        vD[2+i].re = (int16_t) ASHR(16)(s[0+i].re - s[2+i].re, shift_mode);
-        vD[2+i].im = (int16_t) ASHR(16)(s[0+i].im - s[2+i].im, shift_mode);
-        vD[3+i].re = (int16_t) ASHR(16)(s[1+i].re - s[3+i].re, shift_mode);
-        vD[3+i].im = (int16_t) ASHR(16)(s[1+i].im - s[3+i].im, shift_mode);
+        int32_t s[8];
+
+        s[0] = (int32_t)((int16_t *)v)[2*i+0] + (int32_t)((int16_t *)v)[2*i+2];
+        s[1] = (int32_t)((int16_t *)v)[2*i+1] + (int32_t)((int16_t *)v)[2*i+3];
+        s[2] = (int32_t)((int16_t *)v)[2*i+0] - (int32_t)((int16_t *)v)[2*i+2];
+        s[3] = (int32_t)((int16_t *)v)[2*i+1] - (int32_t)((int16_t *)v)[2*i+3];
+        s[4] = (int32_t)((int16_t *)v)[2*i+4] + (int32_t)((int16_t *)v)[2*i+6];
+        s[5] = (int32_t)((int16_t *)v)[2*i+5] + (int32_t)((int16_t *)v)[2*i+7];
+        s[6] = (int32_t)((int16_t *)v)[2*i+5] - (int32_t)((int16_t *)v)[2*i+7];
+        s[7] = (int32_t)((int16_t *)v)[2*i+6] - (int32_t)((int16_t *)v)[2*i+4];
+
+        ((int16_t *)v)[2*i+0] = (int16_t) ASHR(16)(s[0] + s[4], shift_mode);
+        ((int16_t *)v)[2*i+1] = (int16_t) ASHR(16)(s[1] + s[5], shift_mode);
+        ((int16_t *)v)[2*i+2] = (int16_t) ASHR(16)(s[2] + s[6], shift_mode);
+        ((int16_t *)v)[2*i+3] = (int16_t) ASHR(16)(s[3] + s[7], shift_mode);
+        ((int16_t *)v)[2*i+4] = (int16_t) ASHR(16)(s[0] - s[4], shift_mode);
+        ((int16_t *)v)[2*i+5] = (int16_t) ASHR(16)(s[1] - s[5], shift_mode);
+        ((int16_t *)v)[2*i+6] = (int16_t) ASHR(16)(s[2] - s[6], shift_mode);
+        ((int16_t *)v)[2*i+7] = (int16_t) ASHR(16)(s[3] - s[7], shift_mode);
     }
 }
 
 
 void VFTTF(int8_t * vD, int mode, int shift_mode){
     if (mode == 16){
-        vfttf_quake_s16((complex_s16_t*)vD, shift_mode);
+        vfttf_quake_s16(vD, shift_mode);
     } else if (mode == 32){
-        vfttf((complex_s32_t*)vD, shift_mode);
+        vfttf(vD, shift_mode);
     } else{
         assert(0);
     }
 }
 
-
 static void vfttb(
-    complex_s32_t vD[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int64_t re;
-        int64_t im;
-    } s[4];
+    int64_t s[8];
 
-    s[0].re = vD[0].re + vD[1].re;
-    s[0].im = vD[0].im + vD[1].im;
-    s[1].re = vD[0].re - vD[1].re;
-    s[1].im = vD[0].im - vD[1].im;
-    s[2].re = vD[2].re + vD[3].re;
-    s[2].im = vD[2].im + vD[3].im;
-    s[3].re = vD[3].im - vD[2].im;
-    s[3].im = vD[2].re - vD[3].re;
+    s[0] = (int64_t)((int32_t *)v)[0] + (int64_t)((int32_t *)v)[2];
+    s[1] = (int64_t)((int32_t *)v)[1] + (int64_t)((int32_t *)v)[3];
+    s[2] = (int64_t)((int32_t *)v)[0] - (int64_t)((int32_t *)v)[2];
+    s[3] = (int64_t)((int32_t *)v)[1] - (int64_t)((int32_t *)v)[3];
+    s[4] = (int64_t)((int32_t *)v)[4] + (int64_t)((int32_t *)v)[6];
+    s[5] = (int64_t)((int32_t *)v)[5] + (int64_t)((int32_t *)v)[7];
+    s[6] = (int64_t)((int32_t *)v)[7] - (int64_t)((int32_t *)v)[5];
+    s[7] = (int64_t)((int32_t *)v)[4] - (int64_t)((int32_t *)v)[6];
 
-    vD[0].re = (int32_t) ASHR(32)(s[0].re + s[2].re, shift_mode);
-    vD[0].im = (int32_t) ASHR(32)(s[0].im + s[2].im, shift_mode);
-    vD[1].re = (int32_t) ASHR(32)(s[1].re + s[3].re, shift_mode);
-    vD[1].im = (int32_t) ASHR(32)(s[1].im + s[3].im, shift_mode);
-    vD[2].re = (int32_t) ASHR(32)(s[0].re - s[2].re, shift_mode);
-    vD[2].im = (int32_t) ASHR(32)(s[0].im - s[2].im, shift_mode);
-    vD[3].re = (int32_t) ASHR(32)(s[1].re - s[3].re, shift_mode);
-    vD[3].im = (int32_t) ASHR(32)(s[1].im - s[3].im, shift_mode);
+    ((int32_t *)v)[0] = (int32_t) ASHR(32)(s[0] + s[4], shift_mode);
+    ((int32_t *)v)[1] = (int32_t) ASHR(32)(s[1] + s[5], shift_mode);
+    ((int32_t *)v)[2] = (int32_t) ASHR(32)(s[2] + s[6], shift_mode);
+    ((int32_t *)v)[3] = (int32_t) ASHR(32)(s[3] + s[7], shift_mode);
+    ((int32_t *)v)[4] = (int32_t) ASHR(32)(s[0] - s[4], shift_mode);
+    ((int32_t *)v)[5] = (int32_t) ASHR(32)(s[1] - s[5], shift_mode);
+    ((int32_t *)v)[6] = (int32_t) ASHR(32)(s[2] - s[6], shift_mode);
+    ((int32_t *)v)[7] = (int32_t) ASHR(32)(s[3] - s[7], shift_mode);
 }
 
 static void vfttb_quake_s16(
-    complex_s16_t vD[],
-    const right_shift_t shift_mode)
+    int8_t * v,
+    const int shift_mode)
 {
-    struct {
-        int32_t re;
-        int32_t im;
-    } s[8];
 
     for (int i=0; i<8; i+=4){
-        s[0+i].re = vD[0+i].re + vD[1+i].re;
-        s[0+i].im = vD[0+i].im + vD[1+i].im;
-        s[1+i].re = vD[0+i].re - vD[1+i].re;
-        s[1+i].im = vD[0+i].im - vD[1+i].im;
-        s[2+i].re = vD[2+i].re + vD[3+i].re;
-        s[2+i].im = vD[2+i].im + vD[3+i].im;
-        s[3+i].re = vD[3+i].im - vD[2+i].im;
-        s[3+i].im = vD[2+i].re - vD[3+i].re;
-    }
 
-    for (int i=0; i<8; i+=4){
-        vD[0+i].re = (int16_t) ASHR(16)(s[0+i].re + s[2+i].re, shift_mode);
-        vD[0+i].im = (int16_t) ASHR(16)(s[0+i].im + s[2+i].im, shift_mode);
-        vD[1+i].re = (int16_t) ASHR(16)(s[1+i].re + s[3+i].re, shift_mode);
-        vD[1+i].im = (int16_t) ASHR(16)(s[1+i].im + s[3+i].im, shift_mode);
-        vD[2+i].re = (int16_t) ASHR(16)(s[0+i].re - s[2+i].re, shift_mode);
-        vD[2+i].im = (int16_t) ASHR(16)(s[0+i].im - s[2+i].im, shift_mode);
-        vD[3+i].re = (int16_t) ASHR(16)(s[1+i].re - s[3+i].re, shift_mode);
-        vD[3+i].im = (int16_t) ASHR(16)(s[1+i].im - s[3+i].im, shift_mode);
+        int64_t s[8];
+
+        s[0] = (int32_t)((int16_t *)v)[2*i+0] + (int32_t)((int16_t *)v)[2*i+2];
+        s[1] = (int32_t)((int16_t *)v)[2*i+1] + (int32_t)((int16_t *)v)[2*i+3];
+        s[2] = (int32_t)((int16_t *)v)[2*i+0] - (int32_t)((int16_t *)v)[2*i+2];
+        s[3] = (int32_t)((int16_t *)v)[2*i+1] - (int32_t)((int16_t *)v)[2*i+3];
+        s[4] = (int32_t)((int16_t *)v)[2*i+4] + (int32_t)((int16_t *)v)[2*i+6];
+        s[5] = (int32_t)((int16_t *)v)[2*i+5] + (int32_t)((int16_t *)v)[2*i+7];
+        s[6] = (int32_t)((int16_t *)v)[2*i+7] - (int32_t)((int16_t *)v)[2*i+5];
+        s[7] = (int32_t)((int16_t *)v)[2*i+4] - (int32_t)((int16_t *)v)[2*i+6];
+
+        ((int16_t *)v)[2*i+0] = (int16_t) ASHR(16)(s[0] + s[4], shift_mode);
+        ((int16_t *)v)[2*i+1] = (int16_t) ASHR(16)(s[1] + s[5], shift_mode);
+        ((int16_t *)v)[2*i+2] = (int16_t) ASHR(16)(s[2] + s[6], shift_mode);
+        ((int16_t *)v)[2*i+3] = (int16_t) ASHR(16)(s[3] + s[7], shift_mode);
+        ((int16_t *)v)[2*i+4] = (int16_t) ASHR(16)(s[0] - s[4], shift_mode);
+        ((int16_t *)v)[2*i+5] = (int16_t) ASHR(16)(s[1] - s[5], shift_mode);
+        ((int16_t *)v)[2*i+6] = (int16_t) ASHR(16)(s[2] - s[6], shift_mode);
+        ((int16_t *)v)[2*i+7] = (int16_t) ASHR(16)(s[3] - s[7], shift_mode);
     }
 }
 
 void VFTTB(int8_t * vD, int mode, int shift_mode){
     if (mode == 16){
-        vfttb_quake_s16((complex_s16_t*)vD, shift_mode);
+        vfttb_quake_s16(vD, shift_mode);
     } else if (mode == 32){
-        vfttb((complex_s32_t*)vD, shift_mode);
+        vfttb(vD, shift_mode);
     } else{
         assert(0);
     }
